@@ -197,3 +197,33 @@ export interface EventFilter {
   dateRange?: DateRange
   customerId?: string
 }
+
+// System Settings Type
+export interface SystemSettings {
+  id: string
+  system_name: string
+  system_short_name: string
+  owner_name: string
+  proprietor_name?: string
+  contact_number: string
+  email: string
+  office_address: string
+  city?: string
+  state?: string
+  pincode?: string
+  gst_number?: string
+  logo_url?: string
+  banner_url?: string
+  website_url?: string
+  facebook_url?: string
+  instagram_url?: string
+  twitter_url?: string
+  favicon_url?: string
+  currency_symbol: string
+  date_format: string
+  time_format: string
+  theme_color?: string
+  accent_color?: string
+  created_at: string
+  updated_at: string
+}

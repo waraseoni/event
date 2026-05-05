@@ -3,6 +3,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { ReactNode } from 'react'
 import { LanguageProvider } from '@/contexts/language-context'
+import { SystemSettingsProvider } from '@/contexts/system-settings-context'
 
 export function Providers({ children }: { children: ReactNode }) {
   // Initialize Supabase client on the browser
@@ -15,7 +16,9 @@ export function Providers({ children }: { children: ReactNode }) {
 
   return (
     <LanguageProvider>
-      {children}
+      <SystemSettingsProvider>
+        {children}
+      </SystemSettingsProvider>
     </LanguageProvider>
   )
 }

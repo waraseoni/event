@@ -241,6 +241,75 @@ CREATE TRIGGER update_payments_updated_at BEFORE UPDATE ON payments
     FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
 
 -- ============================================
+-- SYSTEM SETTINGS TABLE
+-- ============================================
+CREATE TABLE system_settings (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    system_name TEXT NOT NULL DEFAULT 'Events Management System',
+    system_short_name TEXT NOT NULL DEFAULT 'EMS',
+    owner_name TEXT NOT NULL DEFAULT 'System Owner',
+    proprietor_name TEXT,
+    contact_number TEXT,
+    email TEXT,
+    office_address TEXT,
+    city TEXT,
+    state TEXT,
+    pincode TEXT,
+    gst_number TEXT,
+    logo_url TEXT,
+    banner_url TEXT,
+    website_url TEXT,
+    facebook_url TEXT,
+    instagram_url TEXT,
+    twitter_url TEXT,
+    favicon_url TEXT,
+    currency_symbol TEXT NOT NULL DEFAULT '₹',
+    date_format TEXT NOT NULL DEFAULT 'DD/MM/YYYY',
+    time_format TEXT NOT NULL DEFAULT '12h',
+    theme_color TEXT DEFAULT 'indigo',
+    accent_color TEXT DEFAULT 'fuchsia',
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+COMMENT ON TABLE system_settings IS 'System configuration and business information';
+COMMENT ON COLUMN system_settings.system_name IS 'Full name of the system/business';
+COMMENT ON COLUMN system_settings.system_short_name IS 'Short name/acronym for the system';
+
+-- Insert default settings (only one row should exist)
+INSERT INTO system_settings (system_name, system_short_name, owner_name, currency_symbol) 
+VALUES ('Events Management System', 'EMS', 'System Owner', '₹');
+
+-- Trigger for system_settings
+CREATE TRIGGER update_system_settings_updated_at BEFORE UPDATE ON system_settings
+    FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
+
+-- Enable RLS for system_settings
+ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
+CREATE POLICY "Allow all" ON system_settings FOR ALL USING (true) WITH CHECK (true);
+
+-- ============================================
+-- STORAGE BUCKETS (for images and documents)
+-- ============================================
+-- Create storage bucket for system assets (logos, banners)
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('system-assets', 'system-assets', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Create storage bucket for event documents
+INSERT INTO storage.buckets (id, name, public) 
+VALUES ('event-documents', 'event-documents', true)
+ON CONFLICT (id) DO NOTHING;
+
+-- Storage policies for system-assets bucket
+CREATE POLICY "Allow all operations on system-assets" ON storage.objects
+  FOR ALL USING (bucket_id = 'system-assets') WITH CHECK (bucket_id = 'system-assets');
+
+-- Storage policies for event-documents bucket  
+CREATE POLICY "Allow all operations on event-documents" ON storage.objects
+  FOR ALL USING (bucket_id = 'event-documents') WITH CHECK (bucket_id = 'event-documents');
+
+-- ============================================
 -- ROW LEVEL SECURITY POLICIES
 -- ============================================
 ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;

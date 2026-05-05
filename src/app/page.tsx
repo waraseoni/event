@@ -5,10 +5,16 @@ import { RecentEvents } from '@/components/dashboard/recent-events'
 import { InventoryOverview } from '@/components/dashboard/inventory-overview'
 import { UpcomingBookings } from '@/components/dashboard/upcoming-bookings'
 import { useLanguage } from '@/contexts/language-context'
-import { Sparkles, Zap, TrendingUp } from 'lucide-react'
+import { useSystemSettings } from '@/contexts/system-settings-context'
+import { Sparkles } from 'lucide-react'
 
 export default function HomePage() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
+  const { settings } = useSystemSettings()
+
+  // Use system name from settings or fallback
+  const systemName = settings?.system_name || 'Events Management System'
+  const ownerName = settings?.owner_name || ''
 
   return (
     <div className="space-y-8">
@@ -21,16 +27,16 @@ export default function HomePage() {
               <Sparkles className="h-6 w-6 text-yellow-300" />
             </div>
             <span className="px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-              ✨ Events Management System
+              ✨ {systemName}
             </span>
           </div>
           <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-white via-yellow-200 to-pink-200 bg-clip-text text-transparent">
             {t('nav.dashboard')}
           </h1>
           <p className="text-lg text-white/80 max-w-xl">
-            {t('language.hindi') === 'हिंदी' 
-              ? 'Complete Solution - Manage your events with style and efficiency'
-              : 'संपूर्ण समाधान - अपने कार्यक्रमों को शैली और दक्षता के साथ प्रबंधित करें'}
+            {language === 'en' 
+              ? `Welcome to ${systemName}${ownerName ? ` - Managed by ${ownerName}` : ''}`
+              : `${systemName} में आपका स्वागत है${ownerName ? ` - ${ownerName} द्वारा प्रबंधित` : ''}`}
           </p>
         </div>
         
