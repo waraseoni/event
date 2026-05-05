@@ -90,38 +90,49 @@ export function DashboardStats() {
       title: t('dashboard.totalEvents'),
       value: stats.totalEvents,
       icon: CalendarDays,
-      color: 'text-blue-600',
+      gradient: 'from-violet-500 to-purple-600',
+      iconBg: 'bg-violet-100',
+      iconColor: 'text-violet-600',
     },
     {
       title: t('dashboard.activeRentals'),
       value: stats.activeRentals,
       icon: Package,
-      color: 'text-orange-600',
+      gradient: 'from-amber-500 to-orange-600',
+      iconBg: 'bg-amber-100',
+      iconColor: 'text-amber-600',
     },
     {
       title: t('dashboard.monthlyRevenue'),
       value: formatCurrency(stats.monthlyRevenue),
       icon: IndianRupee,
-      color: 'text-green-600',
+      gradient: 'from-emerald-500 to-teal-600',
+      iconBg: 'bg-emerald-100',
+      iconColor: 'text-emerald-600',
     },
     {
       title: t('dashboard.netProfit'),
       value: formatCurrency(stats.netProfit),
       icon: TrendingUp,
-      color: stats.netProfit >= 0 ? 'text-emerald-600' : 'text-red-600',
+      gradient: stats.netProfit >= 0 ? 'from-rose-500 to-pink-600' : 'from-red-500 to-rose-600',
+      iconBg: stats.netProfit >= 0 ? 'bg-rose-100' : 'bg-red-100',
+      iconColor: stats.netProfit >= 0 ? 'text-rose-600' : 'text-red-600',
     },
   ]
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
       {items.map((item) => (
-        <Card key={item.title}>
+        <Card key={item.title} className="overflow-hidden border-0">
+          <div className={`h-1.5 bg-gradient-to-r ${item.gradient}`} />
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">{item.title}</CardTitle>
-            <item.icon className={`h-4 w-4 ${item.color}`} />
+            <CardTitle className="text-sm font-medium text-slate-600">{item.title}</CardTitle>
+            <div className={`p-2 rounded-lg ${item.iconBg}`}>
+              <item.icon className={`h-4 w-4 ${item.iconColor}`} />
+            </div>
           </CardHeader>
           <CardContent>
-            <div className={`text-2xl font-bold ${item.color}`}>
+            <div className={`text-3xl font-bold bg-gradient-to-r ${item.gradient} bg-clip-text text-transparent`}>
               {item.value}
             </div>
           </CardContent>

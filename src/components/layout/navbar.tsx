@@ -29,39 +29,46 @@ export function Navbar() {
   ]
 
   return (
-    <nav className="border-b bg-white">
+    <nav className="sticky top-0 z-50 backdrop-blur-xl bg-white/70 border-b border-white/20 shadow-lg">
       <div className="container mx-auto px-4">
-        <div className="flex h-16 items-center justify-between">
-          <div className="flex items-center gap-2">
-            <span className="text-xl font-bold text-primary">
+        <div className="flex h-18 items-center justify-between py-3">
+          {/* Logo with Gradient */}
+          <div className="flex items-center gap-3">
+            <div className="p-2 bg-gradient-to-r from-violet-500 to-fuchsia-500 rounded-xl shadow-lg">
+              <LayoutDashboard className="h-6 w-6 text-white" />
+            </div>
+            <span className="text-xl font-bold bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
               Events Manager
             </span>
           </div>
 
-          <div className="hidden md:flex items-center space-x-1">
+          {/* Desktop Navigation */}
+          <div className="hidden md:flex items-center space-x-2">
             {navigation.map((item) => {
               const Icon = item.icon
+              const isActive = pathname === item.href
               return (
                 <Link
                   key={item.name}
                   href={item.href}
                   className={cn(
-                    'flex items-center gap-2 px-3 py-2 rounded-md text-sm font-medium transition-colors',
-                    pathname === item.href
-                      ? 'bg-primary text-primary-foreground'
-                      : 'text-muted-foreground hover:bg-muted hover:text-foreground'
+                    'flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold transition-all duration-300',
+                    isActive
+                      ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg shadow-indigo-500/30 scale-105'
+                      : 'text-slate-600 hover:bg-white/60 hover:text-indigo-600 hover:shadow-md'
                   )}
                 >
-                  <Icon className="h-4 w-4" />
+                  <Icon className={cn('h-4 w-4', isActive ? 'text-white' : 'text-indigo-500')} />
                   {item.name}
                 </Link>
               )
             })}
           </div>
 
-          <div className="flex items-center gap-4">
+          {/* Right Actions */}
+          <div className="flex items-center gap-3">
             <LanguageSwitcher />
-            <button className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground">
+            <button className="flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-semibold text-rose-600 hover:bg-rose-50 transition-all duration-300 hover:shadow-md">
               <LogOut className="h-4 w-4" />
               <span className="hidden sm:inline">{t('nav.logout')}</span>
             </button>
@@ -70,23 +77,24 @@ export function Navbar() {
       </div>
 
       {/* Mobile Navigation */}
-      <div className="md:hidden border-t">
-        <div className="flex overflow-x-auto">
+      <div className="md:hidden border-t border-white/20 bg-white/50 backdrop-blur-lg">
+        <div className="flex overflow-x-auto py-2 px-2 gap-1">
           {navigation.map((item) => {
             const Icon = item.icon
+            const isActive = pathname === item.href
             return (
               <Link
                 key={item.name}
                 href={item.href}
                 className={cn(
-                  'flex flex-col items-center gap-1 px-4 py-2 text-xs font-medium whitespace-nowrap',
-                  pathname === item.href
-                    ? 'text-primary border-b-2 border-primary'
-                    : 'text-muted-foreground'
+                  'flex flex-col items-center gap-1 px-4 py-2 text-xs font-semibold rounded-xl whitespace-nowrap transition-all duration-300 min-w-[70px]',
+                  isActive
+                    ? 'bg-gradient-to-r from-indigo-500 to-purple-600 text-white shadow-lg'
+                    : 'text-slate-600 hover:bg-white/60'
                 )}
               >
-                <Icon className="h-5 w-5" />
-                {item.name}
+                <Icon className={cn('h-5 w-5', isActive ? 'text-white' : 'text-indigo-500')} />
+                <span className="text-[10px]">{item.name}</span>
               </Link>
             )
           })}
