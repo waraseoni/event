@@ -111,6 +111,21 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
 
   const uploadFile = async (file: File, bucket: string, folder: string): Promise<string | null> => {
     try {
+      // Check if bucket exists, create if not
+      const { data: buckets } = await supabase.storage.listBuckets()
+      const bucketExists = buckets?.some(b => b.name === bucket)
+
+      if (!bucketExists) {
+        const { error: createError } = await supabase.storage.createBucket(bucket, {
+          public: true,
+          fileSizeLimit: 5242880, // 5MB limit
+        })
+        if (createError) {
+          console.error('Error creating bucket:', createError)
+          throw createError
+        }
+      }
+
       const fileExt = file.name.split('.').pop()
       const fileName = `${folder}/${Date.now()}_${Math.random().toString(36).substring(7)}.${fileExt}`
 
