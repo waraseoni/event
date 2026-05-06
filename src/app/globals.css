@@ -42,70 +42,71 @@
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.5rem;
   
-  /* Light Theme - Vibrant Gradients */
-  --background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --foreground: #1e293b;
-  --card: rgba(255, 255, 255, 0.9);
-  --card-foreground: #1e293b;
-  --popover: rgba(255, 255, 255, 0.95);
-  --popover-foreground: #1e293b;
+  /* Light Theme - Clean & Professional (Darker background for contrast) */
+  --background: #e2e8f0; /* Slate-200 for better contrast against white inputs */
+  --foreground: #020617; /* Slate-950 for sharp text contrast */
+  --card: #ffffff;
+  --card-foreground: #0f172a;
+  --popover: #ffffff;
+  --popover-foreground: #0f172a;
   
-  /* Primary - Vibrant Indigo */
-  --primary: #6366f1;
+  /* Primary - Deep Indigo/Slate */
+  --primary: #4f46e5;
   --primary-foreground: #ffffff;
   
-  /* Secondary - Bright Cyan */
-  --secondary: #06b6d4;
-  --secondary-foreground: #ffffff;
+  /* Secondary - Soft Gray-Blue */
+  --secondary: #f1f5f9;
+  --secondary-foreground: #475569;
   
-  /* Accent - Hot Pink */
-  --accent: #ec4899;
-  --accent-foreground: #ffffff;
+  /* Accent - Subtle Blue */
+  --accent: #e0e7ff;
+  --accent-foreground: #3730a3;
   
   /* Muted - Soft Gray */
   --muted: #f1f5f9;
   --muted-foreground: #64748b;
   
-  /* Destructive - Bright Red */
+  /* Destructive - Soft Red */
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
   
-  --border: rgba(99, 102, 241, 0.2);
-  --input: rgba(99, 102, 241, 0.1);
-  --ring: #6366f1;
+  --border: #e2e8f0;
+  --input: #e2e8f0;
+  --ring: #4f46e5;
   
-  /* Gradient Backgrounds */
-  --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-  --gradient-accent: linear-gradient(135deg, #4facfe 0%, #00f2fe 100%);
-  --gradient-success: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-  --gradient-warning: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  --gradient-dark: linear-gradient(135deg, #1e293b 0%, #334155 100%);
+  /* Subtle Gradients for Accents */
+  --gradient-primary: linear-gradient(135deg, #4f46e5 0%, #3730a3 100%);
+  --gradient-secondary: linear-gradient(135deg, #64748b 0%, #475569 100%);
+  --gradient-accent: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);
+  --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  --gradient-dark: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
 }
 
 .dark {
-  --background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
-  --foreground: #f8fafc;
-  --card: rgba(30, 41, 59, 0.9);
-  --card-foreground: #f8fafc;
-  --popover: rgba(30, 41, 59, 0.95);
-  --popover-foreground: #f8fafc;
+  /* Dark Theme - Sleek Slate */
+  --background: #020617; /* Slate-950 */
+  --foreground: #ffffff;
+  --card: #0f172a;
+  --card-foreground: #ffffff;
+  --popover: #0f172a;
+  --popover-foreground: #ffffff;
   
-  --primary: #818cf8;
-  --primary-foreground: #0f172a;
-  --secondary: #22d3ee;
-  --secondary-foreground: #0f172a;
-  --accent: #f472b6;
-  --accent-foreground: #0f172a;
-  --muted: #334155;
+  --primary: #6366f1;
+  --primary-foreground: #ffffff;
+  --secondary: #334155;
+  --secondary-foreground: #cbd5e1;
+  --accent: #312e81;
+  --accent-foreground: #e0e7ff;
+  --muted: #1e293b;
   --muted-foreground: #94a3b8;
-  --destructive: #f87171;
-  --destructive-foreground: #0f172a;
-  --border: rgba(129, 140, 248, 0.2);
-  --input: rgba(129, 140, 248, 0.1);
-  --ring: #818cf8;
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+  --border: #334155;
+  --input: #334155;
+  --ring: #6366f1;
 }
 
 /* Base Styles */
@@ -119,108 +120,87 @@
   }
   
   body {
-    @apply bg-gradient-to-br from-indigo-500 via-purple-500 to-pink-500 min-h-screen;
+    @apply bg-background text-foreground min-h-screen;
     background-attachment: fixed;
   }
 }
 
-/* Glassmorphism Card */
+/* Glassmorphism Card (Refined) */
 @layer components {
   .glass-card {
-    @apply bg-white/80 backdrop-blur-xl border border-white/20 shadow-xl;
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    @apply bg-white/90 backdrop-blur-md border border-slate-200/50 shadow-sm;
+    background: rgba(255, 255, 255, 0.95);
   }
   
   .glass-card-dark {
-    @apply bg-slate-900/80 backdrop-blur-xl border border-white/10 shadow-xl;
-    background: rgba(15, 23, 42, 0.85);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    @apply bg-slate-900/90 backdrop-blur-md border border-slate-800/50 shadow-md;
+    background: rgba(15, 23, 42, 0.95);
   }
 }
 
-/* Gradient Buttons */
+/* Professional Buttons */
 @layer components {
   .btn-gradient-primary {
-    @apply text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    box-shadow: 0 4px 15px rgba(102, 126, 234, 0.4);
+    @apply text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200;
+    background: var(--gradient-primary);
+    box-shadow: 0 2px 4px rgba(79, 70, 229, 0.2);
   }
   
   .btn-gradient-primary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(102, 126, 234, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(79, 70, 229, 0.3);
   }
   
   .btn-gradient-secondary {
-    @apply text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300;
-    background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
-    box-shadow: 0 4px 15px rgba(240, 147, 251, 0.4);
+    @apply text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200;
+    background: var(--gradient-secondary);
   }
   
   .btn-gradient-secondary:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(240, 147, 251, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(100, 116, 139, 0.2);
   }
   
   .btn-gradient-success {
-    @apply text-white font-semibold px-6 py-3 rounded-xl transition-all duration-300;
-    background: linear-gradient(135deg, #43e97b 0%, #38f9d7 100%);
-    box-shadow: 0 4px 15px rgba(67, 233, 123, 0.4);
+    @apply text-white font-medium px-5 py-2.5 rounded-lg transition-all duration-200;
+    background: var(--gradient-success);
   }
   
   .btn-gradient-success:hover {
-    transform: translateY(-2px);
-    box-shadow: 0 8px 25px rgba(67, 233, 123, 0.5);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 6px rgba(16, 185, 129, 0.2);
   }
 }
 
-/* Animated Background */
+/* Subtle Utilities */
 @layer utilities {
-  .animated-bg {
-    background: linear-gradient(-45deg, #ee7752, #e73c7e, #23a6d5, #23d5ab);
-    background-size: 400% 400%;
-    animation: gradient 15s ease infinite;
-  }
-  
-  @keyframes gradient {
-    0% { background-position: 0% 50%; }
-    50% { background-position: 100% 50%; }
-    100% { background-position: 0% 50%; }
-  }
-  
-  /* Floating Animation */
   .float {
     animation: float 6s ease-in-out infinite;
   }
   
   @keyframes float {
     0%, 100% { transform: translateY(0px); }
-    50% { transform: translateY(-20px); }
+    50% { transform: translateY(-10px); }
   }
   
-  /* Pulse Glow */
   .pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
+    animation: pulse-glow 3s ease-in-out infinite;
   }
   
   @keyframes pulse-glow {
-    0%, 100% { box-shadow: 0 0 20px rgba(99, 102, 241, 0.4); }
-    50% { box-shadow: 0 0 40px rgba(99, 102, 241, 0.6); }
+    0%, 100% { box-shadow: 0 0 10px rgba(79, 70, 229, 0.2); }
+    50% { box-shadow: 0 0 20px rgba(79, 70, 229, 0.4); }
   }
   
-  /* Shimmer Effect */
   .shimmer {
     background: linear-gradient(
       90deg,
       rgba(255, 255, 255, 0) 0%,
-      rgba(255, 255, 255, 0.4) 50%,
+      rgba(255, 255, 255, 0.2) 50%,
       rgba(255, 255, 255, 0) 100%
     );
     background-size: 200% 100%;
-    animation: shimmer 2s infinite;
+    animation: shimmer 2.5s infinite;
   }
   
   @keyframes shimmer {
@@ -229,28 +209,35 @@
   }
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Professional sleek */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
 
 ::-webkit-scrollbar-track {
-  background: rgba(99, 102, 241, 0.1);
-  border-radius: 4px;
+  background: transparent;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: #cbd5e1;
   border-radius: 4px;
 }
 
+.dark ::-webkit-scrollbar-thumb {
+  background: #475569;
+}
+
 ::-webkit-scrollbar-thumb:hover {
-  background: linear-gradient(135deg, #764ba2 0%, #667eea 100%);
+  background: #94a3b8;
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: #64748b;
 }
 
 /* Selection Color */
 ::selection {
-  background: rgba(99, 102, 241, 0.3);
-  color: #1e293b;
+  background: rgba(79, 70, 229, 0.2);
+  color: inherit;
 }

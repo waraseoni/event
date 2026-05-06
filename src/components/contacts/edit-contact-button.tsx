@@ -72,156 +72,170 @@ export function EditContactButton({ contact, onContactUpdated }: EditContactButt
       </button>
 
       <Dialog open={isOpen} onOpenChange={setIsOpen}>
-        <DialogContent className="sm:max-w-[500px]">
-          <DialogHeader>
-            <DialogTitle>
+        <DialogContent className="sm:max-w-[550px] w-[95vw] max-h-[90vh] flex flex-col p-0 gap-0 overflow-hidden border-slate-300 dark:border-slate-700 bg-slate-100 dark:bg-slate-900 shadow-2xl sm:rounded-2xl">
+          <DialogHeader className="px-6 py-4 border-b border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/50">
+            <DialogTitle className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
               {language === 'en' ? 'Edit Contact' : 'संपर्क संपादित करें'}
             </DialogTitle>
           </DialogHeader>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div className="grid gap-4 md:grid-cols-2">
+          <form onSubmit={handleSubmit} className="flex flex-col flex-1 overflow-hidden">
+            <div className="overflow-y-auto p-6 space-y-5 custom-scrollbar">
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-name" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'Name' : 'नाम'} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="edit-name"
+                    value={formData.name}
+                    onChange={(e) =>
+                      setFormData({ ...formData, name: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-type" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'Type' : 'प्रकार'} <span className="text-red-500">*</span>
+                  </Label>
+                  <Select
+                    value={formData.type}
+                    onValueChange={(value: string) =>
+                      setFormData({ ...formData, type: value as Contact['type'] })
+                    }
+                  >
+                    <SelectTrigger id="edit-type" className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="customer">
+                        {language === 'en' ? 'Customer' : 'ग्राहक'}
+                      </SelectItem>
+                      <SelectItem value="vendor">
+                        {language === 'en' ? 'Vendor' : 'विक्रेता'}
+                      </SelectItem>
+                      <SelectItem value="renter">
+                        {language === 'en' ? 'Renter' : 'किरायेदार'}
+                      </SelectItem>
+                      <SelectItem value="worker">
+                        {language === 'en' ? 'Worker' : 'कर्मचारी'}
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-phone" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'Phone' : 'फोन'} <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    id="edit-phone"
+                    value={formData.phone}
+                    onChange={(e) =>
+                      setFormData({ ...formData, phone: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100"
+                    required
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="edit-email" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'Email' : 'ईमेल'}
+                  </Label>
+                  <Input
+                    id="edit-email"
+                    type="email"
+                    value={formData.email || ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, email: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
+              </div>
+
               <div className="space-y-2">
-                <Label htmlFor="edit-name">
-                  {language === 'en' ? 'Name' : 'नाम'} *
+                <Label htmlFor="edit-address" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {language === 'en' ? 'Address' : 'पता'}
                 </Label>
-                <Input
-                  id="edit-name"
-                  value={formData.name}
+                <Textarea
+                  id="edit-address"
+                  value={formData.address || ''}
                   onChange={(e) =>
-                    setFormData({ ...formData, name: e.target.value })
+                    setFormData({ ...formData, address: e.target.value })
                   }
-                  required
+                  rows={2}
+                  className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100 resize-none"
                 />
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="edit-type">
-                  {language === 'en' ? 'Type' : 'प्रकार'} *
-                </Label>
-                <Select
-                  value={formData.type}
-                  onValueChange={(value: string) =>
-                    setFormData({ ...formData, type: value as Contact['type'] })
-                  }
-                >
-                  <SelectTrigger id="edit-type">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="customer">
-                      {language === 'en' ? 'Customer' : 'ग्राहक'}
-                    </SelectItem>
-                    <SelectItem value="vendor">
-                      {language === 'en' ? 'Vendor' : 'विक्रेता'}
-                    </SelectItem>
-                    <SelectItem value="renter">
-                      {language === 'en' ? 'Renter' : 'किरायेदार'}
-                    </SelectItem>
-                    <SelectItem value="worker">
-                      {language === 'en' ? 'Worker' : 'कर्मचारी'}
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+              <div className="grid gap-5 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label htmlFor="edit-company" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'Company Name' : 'कंपनी का नाम'}
+                  </Label>
+                  <Input
+                    id="edit-company"
+                    value={formData.company_name || ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company_name: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
 
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-phone">
-                  {language === 'en' ? 'Phone' : 'फोन'} *
-                </Label>
-                <Input
-                  id="edit-phone"
-                  value={formData.phone}
-                  onChange={(e) =>
-                    setFormData({ ...formData, phone: e.target.value })
-                  }
-                  required
-                />
+                <div className="space-y-2">
+                  <Label htmlFor="edit-gst" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                    {language === 'en' ? 'GST Number' : 'जीएसटी नंबर'}
+                  </Label>
+                  <Input
+                    id="edit-gst"
+                    value={formData.gst_number || ''}
+                    onChange={(e) =>
+                      setFormData({ ...formData, gst_number: e.target.value })
+                    }
+                    className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100"
+                  />
+                </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="edit-email">
-                  {language === 'en' ? 'Email' : 'ईमेल'}
+                <Label htmlFor="edit-notes" className="text-sm font-semibold text-slate-700 dark:text-slate-300">
+                  {language === 'en' ? 'Notes' : 'नोट्स'}
                 </Label>
-                <Input
-                  id="edit-email"
-                  type="email"
-                  value={formData.email || ''}
+                <Textarea
+                  id="edit-notes"
+                  value={formData.notes || ''}
                   onChange={(e) =>
-                    setFormData({ ...formData, email: e.target.value })
+                    setFormData({ ...formData, notes: e.target.value })
                   }
+                  rows={3}
+                  className="bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 shadow-sm focus-visible:ring-slate-900 dark:focus-visible:ring-slate-300 text-slate-900 dark:text-slate-100 resize-none"
                 />
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="edit-address">
-                {language === 'en' ? 'Address' : 'पता'}
-              </Label>
-              <Textarea
-                id="edit-address"
-                value={formData.address || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, address: e.target.value })
-                }
-                rows={2}
-              />
-            </div>
-
-            <div className="grid gap-4 md:grid-cols-2">
-              <div className="space-y-2">
-                <Label htmlFor="edit-company">
-                  {language === 'en' ? 'Company Name' : 'कंपनी का नाम'}
-                </Label>
-                <Input
-                  id="edit-company"
-                  value={formData.company_name || ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, company_name: e.target.value })
-                  }
-                />
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="edit-gst">
-                  {language === 'en' ? 'GST Number' : 'जीएसटी नंबर'}
-                </Label>
-                <Input
-                  id="edit-gst"
-                  value={formData.gst_number || ''}
-                  onChange={(e) =>
-                    setFormData({ ...formData, gst_number: e.target.value })
-                  }
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="edit-notes">
-                {language === 'en' ? 'Notes' : 'नोट्स'}
-              </Label>
-              <Textarea
-                id="edit-notes"
-                value={formData.notes || ''}
-                onChange={(e) =>
-                  setFormData({ ...formData, notes: e.target.value })
-                }
-                rows={3}
-              />
-            </div>
-
-            <DialogFooter>
+            <DialogFooter className="px-6 py-4 border-t border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => setIsOpen(false)}
                 disabled={loading}
+                className="text-slate-700 dark:text-slate-300 border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 shadow-sm"
               >
                 {language === 'en' ? 'Cancel' : 'रद्द करें'}
               </Button>
-              <Button type="submit" disabled={loading}>
+              <Button 
+                type="submit" 
+                disabled={loading}
+                className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm font-medium px-6 border-0"
+              >
                 {loading ? (
                   <Loader2 className="h-4 w-4 mr-2 animate-spin" />
                 ) : null}
