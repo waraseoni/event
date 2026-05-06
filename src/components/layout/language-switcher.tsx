@@ -12,17 +12,15 @@ export function LanguageSwitcher() {
   }
 
   return (
-    <Button
-      variant="ghost"
-      size="sm"
+    <button
       onClick={toggleLanguage}
-      className="flex items-center gap-2 px-3 py-2 rounded-md hover:bg-accent"
+      className="flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-slate-500/10 transition-colors"
       title={t('language.switch')}
     >
       <Globe className="h-4 w-4" />
-      <span className="font-medium">
+      <span className="text-sm font-medium">
         {language === 'en' ? 'हिंदी' : 'English'}
       </span>
-    </Button>
+    </button>
   )
 }

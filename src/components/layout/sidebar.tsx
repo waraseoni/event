@@ -120,11 +120,8 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Bottom Actions (Language & Logout) */}
-        <div className="p-4 border-t border-slate-800 space-y-3">
-          <div className="hidden md:block px-2 dark-mode-override">
-            <LanguageSwitcher />
-          </div>
+        {/* Bottom Actions (Logout) - Mobile Only */}
+        <div className="p-4 border-t border-slate-800 space-y-3 md:hidden">
           <button className="w-full flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-rose-400 hover:bg-rose-500/10 hover:text-rose-300 transition-all">
             <LogOut className="h-5 w-5 shrink-0" />
             <span>{t('nav.logout')}</span>
