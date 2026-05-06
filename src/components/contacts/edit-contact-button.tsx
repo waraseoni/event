@@ -101,8 +101,8 @@ export function EditContactButton({ contact, onContactUpdated }: EditContactButt
                 </Label>
                 <Select
                   value={formData.type}
-                  onValueChange={(value) =>
-                    setFormData({ ...formData, type: value })
+                  onValueChange={(value: string) =>
+                    setFormData({ ...formData, type: value as Contact['type'] })
                   }
                 >
                   <SelectTrigger id="edit-type">
