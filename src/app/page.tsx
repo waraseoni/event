@@ -18,31 +18,31 @@ export default function HomePage() {
 
   return (
     <div className="space-y-8">
-      {/* Hero Section with Gradient */}
-      <div className="relative overflow-hidden rounded-3xl bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 p-8 text-white shadow-2xl">
-        <div className="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiPjxnIGZpbGw9IiNmZmZmZmYiIGZpbGwtb3BhY2l0eT0iMC4xIj48cGF0aCBkPSJNMzYgMzRoLTJ2LTRoMnY0em0wLTZ2LTRoLTJ2NGgyem0tNiA2aC00djJoNHYtMnptMC02di00aC00djRoNHoiLz48L2c+PC9nPjwvc3ZnPg==')] opacity-30"></div>
-        <div className="relative z-10">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-3 bg-white/20 backdrop-blur-sm rounded-xl">
-              <Sparkles className="h-6 w-6 text-yellow-300" />
+      {/* Hero Section - Sleek & Professional */}
+      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#000000] p-8 border border-slate-200 dark:border-slate-800 shadow-sm">
+        <div className="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
+          <div>
+            <div className="flex items-center gap-3 mb-3">
+              <div className="p-2.5 bg-slate-900 dark:bg-white rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+                <Sparkles className="h-5 w-5 text-white dark:text-slate-900" />
+              </div>
+              <span className="px-3 py-1 bg-slate-100 dark:bg-slate-900 text-slate-700 dark:text-slate-300 rounded-full text-xs font-semibold tracking-wide border border-slate-200 dark:border-slate-800">
+                {systemName}
+              </span>
             </div>
-            <span className="px-4 py-1 bg-white/20 backdrop-blur-sm rounded-full text-sm font-medium">
-              ✨ {systemName}
-            </span>
+            <h1 className="text-3xl md:text-4xl font-bold mb-2 text-slate-900 dark:text-white tracking-tight">
+              {t('nav.dashboard')}
+            </h1>
+            <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl">
+              {language === 'en' 
+                ? `Welcome to your command center${ownerName ? ` - Managed by ${ownerName}` : ''}. Here is what's happening.`
+                : `डैशबोर्ड में आपका स्वागत है${ownerName ? ` - ${ownerName} द्वारा प्रबंधित` : ''}। यहाँ आपकी सभी गतिविधियाँ हैं।`}
+            </p>
           </div>
-          <h1 className="text-4xl md:text-5xl font-bold mb-3 bg-gradient-to-r from-white via-yellow-200 to-pink-200 bg-clip-text text-transparent">
-            {t('nav.dashboard')}
-          </h1>
-          <p className="text-lg text-white/80 max-w-xl">
-            {language === 'en' 
-              ? `Welcome to ${systemName}${ownerName ? ` - Managed by ${ownerName}` : ''}`
-              : `${systemName} में आपका स्वागत है${ownerName ? ` - ${ownerName} द्वारा प्रबंधित` : ''}`}
-          </p>
         </div>
         
-        {/* Floating Decorative Elements */}
-        <div className="absolute top-4 right-4 w-20 h-20 bg-white/10 rounded-full blur-xl float"></div>
-        <div className="absolute bottom-4 right-20 w-16 h-16 bg-pink-400/30 rounded-full blur-xl float" style={{ animationDelay: '1s' }}></div>
+        {/* Subtle Decorative Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 dark:bg-slate-900 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3"></div>
       </div>
       
       <DashboardStats />

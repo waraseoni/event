@@ -179,26 +179,38 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 max-w-5xl mx-auto">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold bg-gradient-to-r from-violet-600 via-fuchsia-600 to-pink-600 bg-clip-text text-transparent">
-            {language === 'en' ? 'System Settings' : 'सिस्टम सेटिंग्स'}
-          </h1>
-          <p className="text-slate-500 mt-1">
-            {language === 'en' 
-              ? 'Configure your business information and system preferences' 
-              : 'अपनी व्यावसायिक जानकारी और सिस्टम प्राथमिकताएं कॉन्फ़िगर करें'}
-          </p>
+      {/* Header Section */}
+      <div className="relative overflow-hidden rounded-2xl bg-white dark:bg-[#000000] p-6 md:p-8 border border-slate-200 dark:border-slate-800 shadow-sm mb-6">
+        <div className="relative z-10 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-6">
+          <div className="flex items-center gap-4">
+            <div className="p-3.5 bg-slate-900 dark:bg-white rounded-xl shadow-sm border border-slate-200 dark:border-slate-800">
+              <Settings className="h-7 w-7 text-white dark:text-slate-900" />
+            </div>
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-slate-900 dark:text-white tracking-tight">
+                {language === 'en' ? 'System Preferences' : 'सिस्टम प्राथमिकताएं'}
+              </h1>
+              <p className="text-slate-500 text-sm mt-1">
+                {language === 'en' 
+                  ? 'Configure your business information, branding, and system defaults' 
+                  : 'अपनी व्यावसायिक जानकारी, ब्रांडिंग और सिस्टम डिफ़ॉल्ट कॉन्फ़िगर करें'}
+              </p>
+            </div>
+          </div>
+          
+          <div className="flex shrink-0">
+            <Button onClick={handleSave} disabled={saving} className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-200 shadow-md transition-all">
+              {saving ? (
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              ) : (
+                <Save className="h-4 w-4 mr-2" />
+              )}
+              {language === 'en' ? 'Save Settings' : 'सेटिंग्स सहेजें'}
+            </Button>
+          </div>
         </div>
-        <Button onClick={handleSave} disabled={saving} className="btn-gradient-primary">
-          {saving ? (
-            <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-          ) : (
-            <Save className="h-4 w-4 mr-2" />
-          )}
-          {language === 'en' ? 'Save Settings' : 'सेटिंग्स सहेजें'}
-        </Button>
+        {/* Subtle Decorative Elements */}
+        <div className="absolute top-0 right-0 w-64 h-64 bg-slate-100 dark:bg-slate-900 rounded-full blur-3xl opacity-50 -translate-y-1/2 translate-x-1/3 pointer-events-none"></div>
       </div>
 
       {/* Success/Error Message */}
