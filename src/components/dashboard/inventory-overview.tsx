@@ -38,17 +38,18 @@ export function InventoryOverview() {
         .from('inventory_items')
         .select('status, total_quantity')
 
+      const itemsList = allItems as any[]
       const stats = {
-        totalItems: allItems?.reduce((sum, item) => sum + item.total_quantity, 0) || 0,
-        availableItems: allItems
+        totalItems: itemsList?.reduce((sum, item) => sum + (item.total_quantity || 0), 0) || 0,
+        availableItems: itemsList
           ?.filter((item) => item.status === 'available')
-          .reduce((sum, item) => sum + item.total_quantity, 0) || 0,
-        rentedItems: allItems
+          .reduce((sum, item) => sum + (item.total_quantity || 0), 0) || 0,
+        rentedItems: itemsList
           ?.filter((item) => item.status === 'rented')
-          .reduce((sum, item) => sum + item.total_quantity, 0) || 0,
-        maintenanceItems: allItems
+          .reduce((sum, item) => sum + (item.total_quantity || 0), 0) || 0,
+        maintenanceItems: itemsList
           ?.filter((item) => item.status === 'maintenance')
-          .reduce((sum, item) => sum + item.total_quantity, 0) || 0,
+          .reduce((sum, item) => sum + (item.total_quantity || 0), 0) || 0,
       }
 
       setStats(stats)
