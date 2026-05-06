@@ -45,7 +45,7 @@ export function DashboardStats() {
       let monthlyRevenue = 0
       let monthlyExpenses = 0
 
-      monthlyPayments?.forEach((payment) => {
+      ;(monthlyPayments as any[])?.forEach((payment) => {
         if (payment.type === 'incoming') {
           monthlyRevenue += payment.amount
         } else {
