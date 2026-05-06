@@ -30,16 +30,16 @@ export function InventoryStats() {
 
       if (error) throw error
 
-      const items = data || []
+      const items = (data || []) as any[]
       const totalItems = items.length
-      const totalQuantity = items.reduce((sum, item) => sum + item.total_quantity, 0)
-      const availableQuantity = items.reduce((sum, item) => sum + item.available_quantity, 0)
+      const totalQuantity = items.reduce((sum, item) => sum + (item.total_quantity || 0), 0)
+      const availableQuantity = items.reduce((sum, item) => sum + (item.available_quantity || 0), 0)
       const rentedQuantity = totalQuantity - availableQuantity
       const maintenanceQuantity = items
         .filter((item) => item.status === 'maintenance')
-        .reduce((sum, item) => sum + item.total_quantity, 0)
+        .reduce((sum, item) => sum + (item.total_quantity || 0), 0)
       const lowStockItems = items.filter(
-        (item) => item.available_quantity <= 2 && item.status === 'available'
+        (item) => (item.available_quantity || 0) <= 2 && item.status === 'available'
       ).length
 
       setStats({
