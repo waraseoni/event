@@ -5,7 +5,8 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Contact } from '@/types'
 import { getContactTypeLabel, getInitials } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
-import { Phone, Mail, Building2, MapPin, Edit, Trash2 } from 'lucide-react'
+import { Phone, Mail, Building2, MapPin, Trash2 } from 'lucide-react'
+import { EditContactButton } from './edit-contact-button'
 
 interface ContactsListProps {
   filter?: { type?: string; search?: string }
@@ -139,9 +140,10 @@ export function ContactsList({ filter }: ContactsListProps) {
               </div>
 
               <div className="flex items-center gap-2">
-                <button className="p-2 hover:bg-muted rounded">
-                  <Edit className="h-4 w-4" />
-                </button>
+                <EditContactButton 
+                  contact={contact} 
+                  onContactUpdated={fetchContacts} 
+                />
                 <button className="p-2 hover:bg-red-50 text-red-600 rounded">
                   <Trash2 className="h-4 w-4" />
                 </button>
