@@ -93,9 +93,9 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
       }
 
       // Update existing settings
-      const { data: updatedData, error: updateError } = await supabase
+      const { data: updatedData, error: updateError } = await (supabase
         .from('system_settings')
-        .update(data)
+        .update as any)(data)
         .eq('id', settings.id)
         .select()
         .single()
