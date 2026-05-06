@@ -27,7 +27,7 @@ export function AddContactButton() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.from('contacts').insert([formData])
+      const { error } = await (supabase.from('contacts').insert as any)([formData])
 
       if (error) throw error
 

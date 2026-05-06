@@ -53,9 +53,9 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
       if (fetchError) {
         // If no settings exist, create default
         if (fetchError.code === 'PGRST116') {
-          const { data: newData, error: createError } = await supabase
+          const { data: newData, error: createError } = await (supabase
             .from('system_settings')
-            .insert([DEFAULT_SETTINGS])
+            .insert as any)([DEFAULT_SETTINGS])
             .select()
             .single()
 
@@ -81,9 +81,9 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
 
       if (!settings?.id) {
         // Create new settings
-        const { data: newData, error: createError } = await supabase
+        const { data: newData, error: createError } = await (supabase
           .from('system_settings')
-          .insert([{ ...DEFAULT_SETTINGS, ...data }])
+          .insert as any)([{ ...DEFAULT_SETTINGS, ...data }])
           .select()
           .single()
 

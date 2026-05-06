@@ -29,7 +29,7 @@ export function AddItemButton() {
     setLoading(true)
 
     try {
-      const { error } = await supabase.from('inventory_items').insert([
+      const { error } = await (supabase.from('inventory_items').insert as any)([
         {
           ...formData,
           available_quantity: formData.total_quantity,
