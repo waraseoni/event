@@ -6,8 +6,10 @@ import { InventoryItem } from '@/types'
 import { getStatusColor, formatCurrency } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import { Edit, Trash2, Package, AlertCircle } from 'lucide-react'
+import { useLanguage } from '@/contexts/language-context'
 
 export function InventoryList() {
+  const { t, language } = useLanguage()
   const [items, setItems] = useState<InventoryItem[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -50,7 +52,7 @@ export function InventoryList() {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">कोई सामान नहीं मिला</p>
+          <p className="text-muted-foreground">{t('inventory.noItems')}</p>
         </CardContent>
       </Card>
     )
@@ -115,7 +117,7 @@ export function InventoryList() {
 
                   {item.purchase_price && (
                     <p className="text-sm text-muted-foreground">
-                      Purchase Price: {formatCurrency(item.purchase_price)}
+                      Purchase Price: {formatCurrency(item.purchase_price, language)}
                     </p>
                   )}
 

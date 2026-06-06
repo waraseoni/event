@@ -55,7 +55,7 @@ export function AddContactButton() {
     <>
       <Button onClick={() => setIsOpen(true)}>
         <Plus className="h-4 w-4 mr-2" />
-        {language === 'en' ? 'New Contact' : 'नया संपर्क'}
+        {t('contacts.addNew')}
       </Button>
 
       {isOpen && (
@@ -63,7 +63,7 @@ export function AddContactButton() {
           <div className="bg-slate-100 dark:bg-slate-900 border border-slate-300 dark:border-slate-700 rounded-2xl w-full max-w-[550px] max-h-[90vh] flex flex-col overflow-hidden shadow-2xl animate-in zoom-in-95 duration-200">
             <div className="px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-900 flex justify-between items-center">
               <h2 className="text-xl font-semibold text-slate-900 dark:text-white tracking-tight">
-                {language === 'en' ? 'Add New Contact' : 'नया संपर्क जोड़ें'}
+                {t('contacts.addNew')}
               </h2>
             </div>
 
@@ -72,7 +72,7 @@ export function AddContactButton() {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'Name' : 'नाम'} <span className="text-red-500">*</span>
+                      {t('contacts.name')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -87,7 +87,7 @@ export function AddContactButton() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'Type' : 'प्रकार'} <span className="text-red-500">*</span>
+                      {t('contacts.type')} <span className="text-red-500">*</span>
                     </label>
                     <select
                       required
@@ -97,10 +97,10 @@ export function AddContactButton() {
                       }
                       className="w-full px-3 py-2 bg-white dark:bg-slate-950 border border-slate-300 dark:border-slate-700 shadow-sm rounded-md focus:outline-none focus:ring-2 focus:ring-slate-900 dark:focus:ring-slate-300 text-slate-900 dark:text-slate-100"
                     >
-                      <option value="vendor">{getContactTypeLabel('vendor')}</option>
-                      <option value="renter">{getContactTypeLabel('renter')}</option>
-                      <option value="customer">{getContactTypeLabel('customer')}</option>
-                      <option value="worker">{getContactTypeLabel('worker')}</option>
+                      <option value="vendor">{getContactTypeLabel('vendor', t)}</option>
+                      <option value="renter">{getContactTypeLabel('renter', t)}</option>
+                      <option value="customer">{getContactTypeLabel('customer', t)}</option>
+                      <option value="worker">{getContactTypeLabel('worker', t)}</option>
                     </select>
                   </div>
                 </div>
@@ -108,7 +108,7 @@ export function AddContactButton() {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'Phone' : 'फोन'} <span className="text-red-500">*</span>
+                      {t('contacts.phone')} <span className="text-red-500">*</span>
                     </label>
                     <input
                       required
@@ -123,7 +123,7 @@ export function AddContactButton() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'Email' : 'ईमेल'}
+                      {t('contacts.email')}
                     </label>
                     <input
                       type="email"
@@ -153,7 +153,7 @@ export function AddContactButton() {
                 <div className="grid gap-5 md:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'Company Name' : 'कंपनी का नाम'}
+                      {t('contacts.companyName')}
                     </label>
                     <input
                       type="text"
@@ -167,7 +167,7 @@ export function AddContactButton() {
 
                   <div className="space-y-2">
                     <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                      {language === 'en' ? 'GST Number' : 'जीएसटी नंबर'}
+                      {t('contacts.gstNumber')}
                     </label>
                     <input
                       type="text"
@@ -182,7 +182,7 @@ export function AddContactButton() {
 
                 <div className="space-y-2">
                   <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">
-                    {language === 'en' ? 'Notes' : 'नोट्स'}
+                    {t('contacts.notes')}
                   </label>
                   <textarea
                     value={formData.notes}
@@ -209,7 +209,7 @@ export function AddContactButton() {
                   disabled={loading} 
                   className="bg-slate-900 dark:bg-white text-white dark:text-slate-900 hover:bg-slate-800 dark:hover:bg-slate-100 transition-colors shadow-sm font-medium px-6 border-0 min-w-[100px]"
                 >
-                  {loading ? 'Saving...' : 'Save'}
+                  {loading ? t('common.loading') : t('common.save')}
                 </Button>
               </div>
             </form>

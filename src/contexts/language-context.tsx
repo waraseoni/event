@@ -1,8 +1,9 @@
 'use client'
 
 import { createContext, useContext, useState, ReactNode } from 'react'
+import { SUPPORTED_LANGUAGES, LanguageCode } from '@/constants/languages'
 
-type Language = 'en' | 'hi'
+type Language = LanguageCode
 
 interface LanguageContextType {
   language: Language
@@ -19,6 +20,7 @@ const translations = {
     'nav.pricing': 'Pricing',
     'nav.events': 'Events',
     'nav.reports': 'Reports',
+    'nav.settings': 'Settings',
     'nav.login': 'Login',
     'nav.logout': 'Logout',
     
@@ -48,6 +50,9 @@ const translations = {
     'dashboard.inventoryOverview': 'Inventory Overview',
     'dashboard.upcomingBookings': 'Upcoming Bookings',
     'dashboard.viewAll': 'View All',
+    'dashboard.welcome': 'Welcome to your command center',
+    'dashboard.managedBy': 'Managed by',
+    'dashboard.hereIsWhatsHappening': 'Here is what\'s happening.',
     
     // Contacts
     'contacts.title': 'Contact Management',
@@ -64,6 +69,13 @@ const translations = {
     'contacts.type': 'Type',
     'contacts.search': 'Search contacts...',
     'contacts.noContacts': 'No contacts found',
+    'contacts.type.vendor': 'Vendor (rented from)',
+    'contacts.type.renter': 'Renter (rented to)',
+    'contacts.type.customer': 'Customer (for events)',
+    'contacts.type.worker': 'Worker',
+    'contacts.companyName': 'Company Name',
+    'contacts.gstNumber': 'GST Number',
+    'contacts.notes': 'Notes',
     
     // Inventory
     'inventory.title': 'Inventory Management',
@@ -82,6 +94,8 @@ const translations = {
     'inventory.noItems': 'No items found',
     'inventory.totalItems': 'Total Items',
     'inventory.availableQty': 'Available',
+    'inventory.lowStockItems': 'Low stock items:',
+    'inventory.onlyAvailable': 'Only {count} available',
     
     // Pricing
     'pricing.title': 'Rental Pricing',
@@ -152,8 +166,8 @@ const translations = {
     'settings.failed': 'Failed to save settings',
     
     // Language
-    'language.english': 'English',
-    'language.hindi': 'हिंदी',
+    'language.english': SUPPORTED_LANGUAGES.en.nativeName,
+    'language.hindi': SUPPORTED_LANGUAGES.hi.nativeName,
     'language.switch': 'Switch Language',
   },
   hi: {
@@ -164,6 +178,7 @@ const translations = {
     'nav.pricing': 'मूल्य निर्धारण',
     'nav.events': 'ईवेंट्स',
     'nav.reports': 'रिपोर्ट्स',
+    'nav.settings': 'सेटिंग्स',
     'nav.login': 'लॉग इन',
     'nav.logout': 'लॉग आउट',
     
@@ -193,6 +208,9 @@ const translations = {
     'dashboard.inventoryOverview': 'इन्वेंटरी अवलोकन',
     'dashboard.upcomingBookings': 'आगामी बुकिंग्स',
     'dashboard.viewAll': 'सभी देखें',
+    'dashboard.welcome': 'डैशबोर्ड में आपका स्वागत है',
+    'dashboard.managedBy': 'द्वारा प्रबंधित',
+    'dashboard.hereIsWhatsHappening': 'यहाँ आपकी सभी गतिविधियाँ हैं।',
     
     // Contacts
     'contacts.title': 'संपर्क प्रबंधन',
@@ -209,6 +227,13 @@ const translations = {
     'contacts.type': 'प्रकार',
     'contacts.search': 'संपर्क खोजें...',
     'contacts.noContacts': 'कोई संपर्क नहीं मिला',
+    'contacts.type.vendor': 'विक्रेता (जिनसे किराये पर लेते हैं)',
+    'contacts.type.renter': 'किरायेदार (जिन्हें किराये पर देते हैं)',
+    'contacts.type.customer': 'ग्राहक (ईवेंट के लिए)',
+    'contacts.type.worker': 'कर्मचारी',
+    'contacts.companyName': 'कंपनी का नाम',
+    'contacts.gstNumber': 'जीएसटी नंबर',
+    'contacts.notes': 'नोट्स',
     
     // Inventory
     'inventory.title': 'इन्वेंटरी प्रबंधन',
@@ -227,6 +252,8 @@ const translations = {
     'inventory.noItems': 'कोई सामान नहीं मिला',
     'inventory.totalItems': 'कुल आइटम्स',
     'inventory.availableQty': 'उपलब्ध',
+    'inventory.lowStockItems': 'कम स्टॉक वाले आइटम:',
+    'inventory.onlyAvailable': 'केवल {count} उपलब्ध',
     
     // Pricing
     'pricing.title': 'किराया मूल्य निर्धारण',
@@ -311,8 +338,8 @@ const translations = {
     'page.settings.description': 'Configure your business information and system preferences',
     
     // Language
-    'language.english': 'English',
-    'language.hindi': 'हिंदी',
+    'language.english': SUPPORTED_LANGUAGES.en.nativeName,
+    'language.hindi': SUPPORTED_LANGUAGES.hi.nativeName,
     'language.switch': 'भाषा बदलें',
   }
 }

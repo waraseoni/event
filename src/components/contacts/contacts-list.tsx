@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Contact } from '@/types'
 import { getContactTypeLabel, getInitials } from '@/lib/utils'
+import { useLanguage } from '@/contexts/language-context'
 import { supabase } from '@/lib/supabase'
 import { Phone, Mail, Building2, MapPin, Trash2 } from 'lucide-react'
 import { EditContactButton } from './edit-contact-button'
@@ -15,6 +16,7 @@ interface ContactsListProps {
 export function ContactsList({ filter }: ContactsListProps) {
   const [contacts, setContacts] = useState<Contact[]>([])
   const [loading, setLoading] = useState(true)
+  const { t } = useLanguage()
 
   useEffect(() => {
     fetchContacts()
@@ -72,7 +74,7 @@ export function ContactsList({ filter }: ContactsListProps) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
-          <p className="text-muted-foreground">कोई संपर्क नहीं मिला</p>
+          <p className="text-muted-foreground">{t('contacts.noContacts')}</p>
         </CardContent>
       </Card>
     )
@@ -102,7 +104,7 @@ export function ContactsList({ filter }: ContactsListProps) {
                         contact.type
                       )}`}
                     >
-                      {getContactTypeLabel(contact.type)}
+                      {getContactTypeLabel(contact.type, t)}
                     </span>
                   </div>
 

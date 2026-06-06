@@ -6,8 +6,10 @@ import { InventoryItem } from '@/types'
 import { getStatusColor } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { useLanguage } from '@/contexts/language-context'
 
 export function InventoryOverview() {
+  const { t } = useLanguage()
   const [items, setItems] = useState<InventoryItem[]>([])
   const [stats, setStats] = useState({
     totalItems: 0,
@@ -64,7 +66,7 @@ export function InventoryOverview() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>इन्वेंटरी अवलोकन</CardTitle>
+          <CardTitle>{t('dashboard.inventoryOverview')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -84,24 +86,24 @@ export function InventoryOverview() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>इन्वेंटरी अवलोकन</CardTitle>
+        <CardTitle>{t('dashboard.inventoryOverview')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="grid gap-4 md:grid-cols-4 mb-6">
           <div className="bg-muted p-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">कुल सामान</p>
+            <p className="text-sm text-muted-foreground">{t('inventory.totalItems')}</p>
             <p className="text-2xl font-bold">{stats.totalItems}</p>
           </div>
           <div className="bg-green-50 p-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">उपलब्ध</p>
+            <p className="text-sm text-muted-foreground">{t('inventory.available')}</p>
             <p className="text-2xl font-bold text-green-600">{stats.availableItems}</p>
           </div>
           <div className="bg-blue-50 p-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">किराये पर</p>
+            <p className="text-sm text-muted-foreground">{t('inventory.rented')}</p>
             <p className="text-2xl font-bold text-blue-600">{stats.rentedItems}</p>
           </div>
           <div className="bg-yellow-50 p-3 rounded-lg">
-            <p className="text-sm text-muted-foreground">मरम्मत में</p>
+            <p className="text-sm text-muted-foreground">{t('inventory.maintenance')}</p>
             <p className="text-2xl font-bold text-yellow-600">{stats.maintenanceItems}</p>
           </div>
         </div>
@@ -109,7 +111,7 @@ export function InventoryOverview() {
         {lowStockItems.length > 0 && (
           <div className="mb-4">
             <h4 className="text-sm font-medium mb-2 text-red-600">
-              कम स्टॉक वाले आइटम:
+              {t('inventory.lowStockItems')}
             </h4>
             <div className="space-y-2">
               {lowStockItems.map((item) => (
@@ -119,7 +121,7 @@ export function InventoryOverview() {
                 >
                   <span className="text-sm font-medium">{item.name}</span>
                   <span className="text-sm text-red-600">
-                    केवल {item.available_quantity} उपलब्ध
+                    {t('inventory.onlyAvailable').replace('{count}', item.available_quantity.toString())}
                   </span>
                 </div>
               ))}
@@ -131,7 +133,7 @@ export function InventoryOverview() {
           href="/inventory"
           className="text-sm text-primary hover:underline"
         >
-          पूरी इन्वेंटरी देखें →
+          {t('dashboard.viewAll')} →
         </Link>
       </CardContent>
     </Card>

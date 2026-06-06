@@ -3,13 +3,18 @@
 import { useLanguage } from '@/contexts/language-context'
 import { Button } from '@/components/ui/button'
 import { Globe } from 'lucide-react'
+import { SUPPORTED_LANGUAGES, LANGUAGE_CODES } from '@/constants/languages'
 
 export function LanguageSwitcher() {
   const { language, setLanguage, t } = useLanguage()
 
   const toggleLanguage = () => {
-    setLanguage(language === 'en' ? 'hi' : 'en')
+    const currentIndex = LANGUAGE_CODES.indexOf(language)
+    const nextIndex = (currentIndex + 1) % LANGUAGE_CODES.length
+    setLanguage(LANGUAGE_CODES[nextIndex])
   }
+
+  const otherLanguage = LANGUAGE_CODES.find(code => code !== language)
 
   return (
     <button
@@ -19,7 +24,7 @@ export function LanguageSwitcher() {
     >
       <Globe className="h-4 w-4" />
       <span className="text-sm font-medium">
-        {language === 'en' ? 'हिंदी' : 'English'}
+        {otherLanguage ? SUPPORTED_LANGUAGES[otherLanguage].nativeName : language}
       </span>
     </button>
   )

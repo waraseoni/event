@@ -5,8 +5,9 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export function formatCurrency(amount: number): string {
-  return new Intl.NumberFormat('hi-IN', {
+export function formatCurrency(amount: number, language: string = 'en'): string {
+  const locale = language === 'hi' ? 'hi-IN' : 'en-IN'
+  return new Intl.NumberFormat(locale, {
     style: 'currency',
     currency: 'INR',
     minimumFractionDigits: 0,
@@ -14,16 +15,18 @@ export function formatCurrency(amount: number): string {
   }).format(amount)
 }
 
-export function formatDate(date: string | Date): string {
-  return new Intl.DateTimeFormat('hi-IN', {
+export function formatDate(date: string | Date, language: string = 'en'): string {
+  const locale = language === 'hi' ? 'hi-IN' : 'en-IN'
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
   }).format(new Date(date))
 }
 
-export function formatDateTime(date: string | Date): string {
-  return new Intl.DateTimeFormat('hi-IN', {
+export function formatDateTime(date: string | Date, language: string = 'en'): string {
+  const locale = language === 'hi' ? 'hi-IN' : 'en-IN'
+  return new Intl.DateTimeFormat(locale, {
     year: 'numeric',
     month: 'short',
     day: 'numeric',
@@ -45,12 +48,19 @@ export function generateUniqueCode(prefix: string = ''): string {
   return `${prefix}${timestamp}${random}`
 }
 
-export function getContactTypeLabel(type: string): string {
+export function getContactTypeLabel(type: string, t?: (key: string) => string): string {
+  if (t) {
+    const translated = t(`contacts.type.${type}`)
+    if (translated !== `contacts.type.${type}`) {
+      return translated
+    }
+  }
+  // Fallback to English labels if no translation function provided
   const labels: Record<string, string> = {
-    vendor: 'विक्रेता (जिनसे किराये पर लेते हैं)',
-    renter: 'किरायेदार (जिन्हें किराये पर देते हैं)',
-    customer: 'ग्राहक (ईवेंट के लिए)',
-    worker: 'कर्मचारी',
+    vendor: 'Vendor (rented from)',
+    renter: 'Renter (rented to)',
+    customer: 'Customer (for events)',
+    worker: 'Worker',
   }
   return labels[type] || type
 }

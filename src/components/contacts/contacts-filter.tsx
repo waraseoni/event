@@ -11,11 +11,11 @@ export function ContactsFilter() {
   const { t, language } = useLanguage()
 
   const contactTypes = [
-    { value: '', label: language === 'en' ? 'All Types' : 'सभी प्रकार' },
-    { value: 'vendor', label: getContactTypeLabel('vendor') },
-    { value: 'renter', label: getContactTypeLabel('renter') },
-    { value: 'customer', label: getContactTypeLabel('customer') },
-    { value: 'worker', label: getContactTypeLabel('worker') },
+    { value: '', label: t('contacts.all') },
+    { value: 'vendor', label: getContactTypeLabel('vendor', t) },
+    { value: 'renter', label: getContactTypeLabel('renter', t) },
+    { value: 'customer', label: getContactTypeLabel('customer', t) },
+    { value: 'worker', label: getContactTypeLabel('worker', t) },
   ]
 
   return (

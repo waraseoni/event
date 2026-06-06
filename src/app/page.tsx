@@ -34,9 +34,7 @@ export default function HomePage() {
               {t('nav.dashboard')}
             </h1>
             <p className="text-base text-slate-500 dark:text-slate-400 max-w-xl">
-              {language === 'en' 
-                ? `Welcome to your command center${ownerName ? ` - Managed by ${ownerName}` : ''}. Here is what's happening.`
-                : `डैशबोर्ड में आपका स्वागत है${ownerName ? ` - ${ownerName} द्वारा प्रबंधित` : ''}। यहाँ आपकी सभी गतिविधियाँ हैं।`}
+              {t('dashboard.welcome')}{ownerName ? ` ${t('dashboard.managedBy')} ${ownerName}` : ''} {t('dashboard.hereIsWhatsHappening')}
             </p>
           </div>
         </div>

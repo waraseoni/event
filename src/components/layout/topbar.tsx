@@ -23,7 +23,7 @@ export function Topbar() {
 
       {/* Right Actions */}
       <div className="flex items-center gap-4">
-        <div className="dark-mode-override">
+        <div className="text-slate-600 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white transition-colors">
           <LanguageSwitcher />
         </div>
         

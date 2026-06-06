@@ -6,8 +6,10 @@ import { Event } from '@/types'
 import { formatDate, calculateDaysBetween } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { useLanguage } from '@/contexts/language-context'
 
 export function UpcomingBookings() {
+  const { t, language } = useLanguage()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -45,17 +47,17 @@ export function UpcomingBookings() {
 
     const days = calculateDaysBetween(today.toISOString(), event.toISOString()) - 1
 
-    if (days === 0) return 'आज'
-    if (days === 1) return 'कल'
-    if (days < 0) return 'पिछला'
-    return `${days} दिन बाद`
+    if (days === 0) return language === 'en' ? 'Today' : 'आज'
+    if (days === 1) return language === 'en' ? 'Tomorrow' : 'कल'
+    if (days < 0) return language === 'en' ? 'Past' : 'पिछला'
+    return language === 'en' ? `${days} days later` : `${days} दिन बाद`
   }
 
   if (loading) {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>आगामी बुकिंग्स</CardTitle>
+          <CardTitle>{t('dashboard.upcomingBookings')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -71,12 +73,12 @@ export function UpcomingBookings() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>आगामी बुकिंग्स</CardTitle>
+        <CardTitle>{t('dashboard.upcomingBookings')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {events.length === 0 ? (
-            <p className="text-muted-foreground">कोई आगामी बुकिंग नहीं</p>
+            <p className="text-muted-foreground">{t('events.noEvents')}</p>
           ) : (
             events.map((event) => (
               <div
@@ -96,7 +98,7 @@ export function UpcomingBookings() {
                     {getDaysUntilEvent(event.event_date)}
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {formatDate(event.event_date)}
+                    {formatDate(event.event_date, language)}
                   </p>
                 </div>
               </div>
@@ -108,7 +110,7 @@ export function UpcomingBookings() {
             href="/events"
             className="text-sm text-primary hover:underline"
           >
-            कैलेंडर देखें →
+            {t('dashboard.viewAll')} →
           </Link>
         </div>
       </CardContent>

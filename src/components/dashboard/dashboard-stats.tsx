@@ -8,7 +8,7 @@ import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/contexts/language-context'
 
 export function DashboardStats() {
-  const { t } = useLanguage()
+  const { t, language } = useLanguage()
   const [stats, setStats] = useState({
     totalEvents: 0,
     activeRentals: 0,
@@ -104,7 +104,7 @@ export function DashboardStats() {
     },
     {
       title: t('dashboard.monthlyRevenue'),
-      value: formatCurrency(stats.monthlyRevenue),
+      value: formatCurrency(stats.monthlyRevenue, language),
       icon: IndianRupee,
       gradient: 'from-emerald-500 to-teal-600',
       iconBg: 'bg-emerald-100',
@@ -112,7 +112,7 @@ export function DashboardStats() {
     },
     {
       title: t('dashboard.netProfit'),
-      value: formatCurrency(stats.netProfit),
+      value: formatCurrency(stats.netProfit, language),
       icon: TrendingUp,
       gradient: stats.netProfit >= 0 ? 'from-rose-500 to-pink-600' : 'from-red-500 to-rose-600',
       iconBg: stats.netProfit >= 0 ? 'bg-rose-100' : 'bg-red-100',

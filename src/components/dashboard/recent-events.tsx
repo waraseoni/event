@@ -6,8 +6,10 @@ import { Event } from '@/types'
 import { formatDate, getStatusColor, formatCurrency } from '@/lib/utils'
 import { supabase } from '@/lib/supabase'
 import Link from 'next/link'
+import { useLanguage } from '@/contexts/language-context'
 
 export function RecentEvents() {
+  const { t, language } = useLanguage()
   const [events, setEvents] = useState<Event[]>([])
   const [loading, setLoading] = useState(true)
 
@@ -37,7 +39,7 @@ export function RecentEvents() {
     return (
       <Card>
         <CardHeader>
-          <CardTitle>हाल के ईवेंट्स</CardTitle>
+          <CardTitle>{t('dashboard.recentEvents')}</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="space-y-2">
@@ -53,12 +55,12 @@ export function RecentEvents() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle>हाल के ईवेंट्स</CardTitle>
+        <CardTitle>{t('dashboard.recentEvents')}</CardTitle>
       </CardHeader>
       <CardContent>
         <div className="space-y-4">
           {events.length === 0 ? (
-            <p className="text-muted-foreground">कोई ईवेंट नहीं मिला</p>
+            <p className="text-muted-foreground">{t('events.noEvents')}</p>
           ) : (
             events.map((event) => (
               <div
@@ -70,12 +72,12 @@ export function RecentEvents() {
                     {event.name}
                   </p>
                   <p className="text-sm text-muted-foreground">
-                    {event.customer?.name || 'Unknown'} • {formatDate(event.event_date)}
+                    {event.customer?.name || 'Unknown'} • {formatDate(event.event_date, language)}
                   </p>
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">
-                    {formatCurrency(event.total_amount)}
+                    {formatCurrency(event.total_amount, language)}
                   </span>
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
@@ -94,7 +96,7 @@ export function RecentEvents() {
             href="/events"
             className="text-sm text-primary hover:underline"
           >
-            सभी ईवेंट्स देखें →
+            {t('dashboard.viewAll')} →
           </Link>
         </div>
       </CardContent>

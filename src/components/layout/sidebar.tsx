@@ -38,7 +38,7 @@ export function Sidebar() {
     { name: t('nav.pricing'), href: '/pricing', icon: IndianRupee },
     { name: t('nav.events'), href: '/events', icon: CalendarDays },
     { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
-    { name: t('language.hindi') === 'हिंदी' ? 'सेटिंग्स' : 'Settings', href: '/settings', icon: Settings },
+    { name: t('nav.settings'), href: '/settings', icon: Settings },
   ]
 
   // Close mobile menu on path change
@@ -61,7 +61,7 @@ export function Sidebar() {
           </span>
         </Link>
         <div className="flex items-center gap-2">
-          <div className="dark-mode-override">
+          <div className="text-slate-300 hover:text-white transition-colors">
             <LanguageSwitcher />
           </div>
           <button 
