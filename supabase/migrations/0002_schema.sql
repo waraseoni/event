@@ -474,13 +474,13 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ================================================================
 -- (B+) Foreign Key Constraints — add after all tables exist
 -- ================================================================
-ALTER TABLE inventory_items ADD CONSTRAINT IF NOT EXISTS fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
-ALTER TABLE inventory_items ADD CONSTRAINT IF NOT EXISTS fk_inventory_location FOREIGN KEY (location_id) REFERENCES item_locations(id);
-ALTER TABLE events ADD CONSTRAINT IF NOT EXISTS fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
-ALTER TABLE events ADD CONSTRAINT IF NOT EXISTS fk_events_created_by FOREIGN KEY (created_by) REFERENCES profiles(id);
-ALTER TABLE event_items ADD CONSTRAINT IF NOT EXISTS fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
-ALTER TABLE payments ADD CONSTRAINT IF NOT EXISTS fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
-ALTER TABLE payments ADD CONSTRAINT IF NOT EXISTS fk_payments_payroll FOREIGN KEY (staff_payroll_id) REFERENCES payroll_entries(id) ON DELETE SET NULL;
+ALTER TABLE inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_category; ALTER TABLE inventory_items ADD CONSTRAINT fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
+ALTER TABLE inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_location; ALTER TABLE inventory_items ADD CONSTRAINT fk_inventory_location FOREIGN KEY (location_id) REFERENCES item_locations(id);
+ALTER TABLE events DROP CONSTRAINT IF EXISTS fk_events_quote; ALTER TABLE events ADD CONSTRAINT fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
+ALTER TABLE events DROP CONSTRAINT IF EXISTS fk_events_created_by; ALTER TABLE events ADD CONSTRAINT fk_events_created_by FOREIGN KEY (created_by) REFERENCES profiles(id);
+ALTER TABLE event_items DROP CONSTRAINT IF EXISTS fk_event_items_quote; ALTER TABLE event_items ADD CONSTRAINT fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
+ALTER TABLE payments DROP CONSTRAINT IF EXISTS fk_payments_invoice; ALTER TABLE payments ADD CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
+ALTER TABLE payments DROP CONSTRAINT IF EXISTS fk_payments_payroll; ALTER TABLE payments ADD CONSTRAINT fk_payments_payroll FOREIGN KEY (staff_payroll_id) REFERENCES payroll_entries(id) ON DELETE SET NULL;
 
 -- ================================================================
 -- (C) INDEXES for new tables
