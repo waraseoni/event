@@ -236,3 +236,69 @@ export interface SystemSettings {
   created_at: string
   updated_at: string
 }
+
+// Staff Types
+export interface StaffMember {
+  id: string
+  contact_id?: string
+  designation?: string
+  employment_type: 'permanent' | 'contract' | 'daily'
+  base_salary: number
+  daily_wage: number
+  bank_account?: string
+  ifsc_code?: string
+  pan?: string
+  aadhaar?: string
+  status: 'active' | 'inactive' | 'terminated'
+  joined_at?: string
+  notes?: string
+  created_at: string
+  updated_at: string
+}
+
+export interface PayrollRun {
+  id: string
+  period_from: string
+  period_to: string
+  payroll_month: string
+  gross_total: number
+  deduction_total: number
+  net_total: number
+  status: 'draft' | 'approved' | 'paid'
+  created_at: string
+}
+
+// Rental Types
+export interface RentalContract {
+  id: string
+  contract_no: string
+  direction: 'in' | 'out'
+  party_id: string
+  event_id?: string
+  contract_date: string
+  start_date: string
+  end_date: string
+  rate_type: string
+  rate: number
+  total_amount: number
+  security_deposit: number
+  status: string
+  notes?: string
+  created_at: string
+}
+
+// Invoice Types
+export interface Invoice {
+  id: string
+  invoice_no: string
+  event_id?: string
+  client_id: string
+  issue_date: string
+  due_date?: string
+  subtotal: number
+  grand_total: number
+  amount_paid: number
+  amount_due: number
+  status: 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled'
+  created_at: string
+}
