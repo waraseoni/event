@@ -1,0 +1,18 @@
+export const queryKeys = {
+  all: ['events'] as const,
+  events: () => [...queryKeys.all, 'events'] as const,
+  event: (id: string) => [...queryKeys.events(), id] as const,
+  clients: () => [...queryKeys.all, 'clients'] as const,
+  client: (id: string) => [...queryKeys.clients(), id] as const,
+  inventory: () => [...queryKeys.all, 'inventory'] as const,
+  inventoryItem: (id: string) => [...queryKeys.inventory(), id] as const,
+  pricing: () => [...queryKeys.all, 'pricing'] as const,
+  quotes: () => [...queryKeys.all, 'quotes'] as const,
+  quote: (id: string) => [...queryKeys.quotes(), id] as const,
+  rentals: () => [...queryKeys.all, 'rentals'] as const,
+  staff: () => [...queryKeys.all, 'staff'] as const,
+  payroll: () => [...queryKeys.all, 'payroll'] as const,
+  invoices: () => [...queryKeys.all, 'invoices'] as const,
+  payments: () => [...queryKeys.all, 'payments'] as const,
+  reports: () => [...queryKeys.all, 'reports'] as const,
+} as const

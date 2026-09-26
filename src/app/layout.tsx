@@ -4,6 +4,7 @@ import './globals.css'
 import { Sidebar } from '@/components/layout/sidebar'
 import { Topbar } from '@/components/layout/topbar'
 import { Providers } from '@/components/providers'
+import { ToasterComponent } from '@/components/ui/toast'
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -12,15 +13,12 @@ export const metadata: Metadata = {
   description: 'Complete event management solution for inventory, contacts, and bookings',
 }
 
-export default function RootLayout({
-  children,
-}: {
-  children: React.ReactNode
-}) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="hi">
+    <html lang="en">
       <body className={inter.className}>
         <Providers>
+          <ToasterComponent />
           <div className="flex h-screen flex-col md:flex-row bg-background overflow-hidden">
             <Sidebar />
             <main className="flex-1 flex flex-col bg-background overflow-hidden">

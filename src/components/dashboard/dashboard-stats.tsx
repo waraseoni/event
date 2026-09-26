@@ -17,10 +17,6 @@ export function DashboardStats() {
   })
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchDashboardStats()
-  }, [])
-
   async function fetchDashboardStats() {
     try {
       const currentMonth = new Date().toISOString().slice(0, 7)
@@ -119,6 +115,27 @@ export function DashboardStats() {
       iconColor: stats.netProfit >= 0 ? 'text-rose-600' : 'text-red-600',
     },
   ]
+
+  useEffect(() => {
+    fetchDashboardStats()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        {[...Array(4)].map((_, i) => (
+          <Card key={i}>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">{t('common.loading')}</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">-</div>
+            </CardContent>
+          </Card>
+        ))}
+      </div>
+    )
+  }
 
   return (
     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
