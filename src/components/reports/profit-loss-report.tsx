@@ -14,10 +14,6 @@ export function ProfitLossReport() {
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
   async function fetchData() {
     try {
       const { data: events, error: eErr } = await supabase.from('events').select('*')
@@ -54,6 +50,10 @@ export function ProfitLossReport() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   if (loading) {
     return <Card><CardContent className="p-6"><div className="h-64 bg-muted rounded animate-pulse" /></CardContent></Card>

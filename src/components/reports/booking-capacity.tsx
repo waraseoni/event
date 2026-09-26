@@ -3,7 +3,6 @@
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { supabase } from '@/lib/supabase'
-import { format } from 'date-fns'
 import { useLanguage } from '@/contexts/language-context'
 import { AlertTriangle } from 'lucide-react'
 
@@ -11,10 +10,6 @@ export function BookingCapacity() {
   const { t, language } = useLanguage()
   const [data, setData] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
-
-  useEffect(() => {
-    fetchData()
-  }, [])
 
   async function fetchData() {
     try {
@@ -45,6 +40,10 @@ export function BookingCapacity() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchData()
+  }, [])
 
   if (loading) {
     return <Card><CardContent className="p-6"><div className="h-64 bg-muted rounded animate-pulse" /></CardContent></Card>

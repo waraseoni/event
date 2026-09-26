@@ -20,10 +20,6 @@ export function EventsList() {
   const [events, setEvents] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchEvents()
-  }, [])
-
   async function fetchEvents() {
     try {
       const { data, error } = await supabase.from('events').select('*').order('event_date', { ascending: false })
@@ -35,6 +31,10 @@ export function EventsList() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchEvents()
+  }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this event?')) return

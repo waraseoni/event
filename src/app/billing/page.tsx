@@ -12,10 +12,6 @@ export default function BillingPage() {
   const [invoices, setInvoices] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchInvoices()
-  }, [])
-
   async function fetchInvoices() {
     try {
       const { data, error } = await supabase.from('invoices').select('*').order('issue_date', { ascending: false })
@@ -27,6 +23,10 @@ export default function BillingPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchInvoices()
+  }, [])
 
   return (
     <div className="space-y-6">

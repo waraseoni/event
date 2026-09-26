@@ -12,10 +12,6 @@ export function PricingList() {
   const [rates, setRates] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
 
-  useEffect(() => {
-    fetchRates()
-  }, [])
-
   async function fetchRates() {
     try {
       const { data, error } = await supabase
@@ -30,6 +26,10 @@ export function PricingList() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchRates()
+  }, [])
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this rate?')) return

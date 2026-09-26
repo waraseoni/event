@@ -14,10 +14,6 @@ export default function ClientsPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({ name: '', type: 'customer' as const, phone: '', email: '', company_name: '', credit_days: '' })
 
-  useEffect(() => {
-    fetchClients()
-  }, [])
-
   async function fetchClients() {
     try {
       const { data, error } = await supabase.from('contacts').select('*').in('type', ['renter', 'customer']).order('name')
@@ -29,6 +25,10 @@ export default function ClientsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchClients()
+  }, [])
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()

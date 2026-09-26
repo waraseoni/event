@@ -15,11 +15,6 @@ export default function StaffPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({ name: '', designation: '', employment_type: 'daily', base_salary: '', daily_wage: '', contact_id: '' })
 
-  useEffect(() => {
-    fetchStaff()
-    fetchPayroll()
-  }, [])
-
   async function fetchStaff() {
     try {
       const { data, error } = await supabase.from('staff_members').select('*').order('created_at', { ascending: false })
@@ -39,6 +34,11 @@ export default function StaffPage() {
       // silent
     }
   }
+
+  useEffect(() => {
+    fetchStaff()
+    fetchPayroll()
+  }, [])
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()

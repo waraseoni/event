@@ -14,10 +14,6 @@ export default function RentalsPage() {
   const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({ direction: 'out' as const, party_id: '', start_date: '', end_date: '', rate: '', total_amount: '', notes: '' })
 
-  useEffect(() => {
-    fetchRentals()
-  }, [])
-
   async function fetchRentals() {
     try {
       const { data, error } = await supabase.from('rental_contracts').select('*').order('created_at', { ascending: false })
@@ -29,6 +25,10 @@ export default function RentalsPage() {
       setLoading(false)
     }
   }
+
+  useEffect(() => {
+    fetchRentals()
+  }, [])
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
