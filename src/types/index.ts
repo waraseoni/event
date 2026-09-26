@@ -23,6 +23,15 @@ export interface InventoryItem {
   description?: string
   serial_number?: string
   unique_code: string
+  company?: string
+  model?: string
+  scope?: string
+  item_type?: 'owned' | 'external' | 'both'
+  target_event_types?: string
+  estimated_rent_price?: number
+  min_price?: number
+  security_deposit?: number
+  reorder_level: number
   total_quantity: number
   available_quantity: number
   unit: string

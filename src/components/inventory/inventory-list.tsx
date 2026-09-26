@@ -77,31 +77,80 @@ export function InventoryList() {
                   </div>
 
                   <div className="flex flex-wrap gap-4 text-sm">
-                    <span className="text-muted-foreground">
-                      Category: {item.category}
-                    </span>
-                    <span className="text-muted-foreground">
-                      Unit: {item.unit}
-                    </span>
-                    {item.serial_number && (
-                      <span className="text-muted-foreground">
-                        S/N: {item.serial_number}
-                      </span>
-                    )}
-                  </div>
+                     <span className="text-muted-foreground">
+                       Category: {item.category}
+                     </span>
+                     <span className="text-muted-foreground">
+                       Unit: {item.unit}
+                     </span>
+                     {item.serial_number && (
+                       <span className="text-muted-foreground">
+                         S/N: {item.serial_number}
+                       </span>
+                     )}
+                   </div>
 
-                  <div className="flex items-center gap-4 mt-2">
-                    <span
-                      className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
-                        item.status
-                      )}`}
-                    >
-                      {item.status}
-                    </span>
-                    <span className="text-sm text-muted-foreground">
-                      Condition: {item.condition}
-                    </span>
-                  </div>
+                   {(item.company || item.model || item.scope) && (
+                     <div className="flex flex-wrap gap-4 text-sm mt-1">
+                       {item.company && (
+                         <span className="text-muted-foreground">
+                           Company: {item.company}
+                         </span>
+                       )}
+                       {item.model && (
+                         <span className="text-muted-foreground">
+                           Model: {item.model}
+                         </span>
+                       )}
+                       {item.scope && (
+                         <span className="text-muted-foreground">
+                           Scope: {item.scope}
+                         </span>
+                       )}
+                       {item.item_type && (
+                         <span className="text-muted-foreground">
+                           Type: {item.item_type}
+                         </span>
+                       )}
+                     </div>
+                   )}
+
+                   {item.estimated_rent_price && (
+                     <div className="flex flex-wrap gap-4 text-sm mt-1">
+                       <span className="text-green-600 font-medium">
+                         Rent: {formatCurrency(item.estimated_rent_price, language)}/day
+                       </span>
+                       {item.min_price && (
+                         <span className="text-muted-foreground">
+                           Min: {formatCurrency(item.min_price, language)}
+                         </span>
+                       )}
+                       {item.security_deposit && (
+                         <span className="text-muted-foreground">
+                           Deposit: {formatCurrency(item.security_deposit, language)}
+                         </span>
+                       )}
+                     </div>
+                   )}
+
+                   {item.target_event_types && (
+                     <p className="text-sm text-muted-foreground mt-1">
+                       Target Events: {item.target_event_types}
+                     </p>
+                   )}
+
+                   <div className="flex items-center gap-4 mt-2">
+                     <span
+                       className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(
+                         item.status
+                       )}`}
+                     >
+                       {item.status}
+                     </span>
+                     <span className="text-sm text-muted-foreground">
+                       Condition: {item.condition}
+                     </span>
+                   </div>
 
                   <div className="flex items-center gap-4 text-sm mt-2">
                     <span className="font-medium">

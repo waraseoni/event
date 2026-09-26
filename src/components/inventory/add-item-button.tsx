@@ -17,6 +17,15 @@ export function AddItemButton() {
     description: '',
     serial_number: '',
     unique_code: generateUniqueCode('ITM'),
+    company: '',
+    model: '',
+    scope: '',
+    item_type: 'owned' as const,
+    target_event_types: '',
+    estimated_rent_price: '',
+    min_price: '',
+    security_deposit: '',
+    reorder_level: 1,
     total_quantity: 1,
     unit: 'piece',
     purchase_price: '',
@@ -36,6 +45,17 @@ export function AddItemButton() {
           purchase_price: formData.purchase_price
             ? parseFloat(formData.purchase_price)
             : null,
+          estimated_rent_price: formData.estimated_rent_price
+            ? parseFloat(formData.estimated_rent_price)
+            : null,
+          min_price: formData.min_price
+            ? parseFloat(formData.min_price)
+            : null,
+          security_deposit: formData.security_deposit
+            ? parseFloat(formData.security_deposit)
+            : null,
+          reorder_level: formData.reorder_level || 1,
+          target_event_types: formData.target_event_types || null,
         },
       ])
 
@@ -48,6 +68,15 @@ export function AddItemButton() {
         description: '',
         serial_number: '',
         unique_code: generateUniqueCode('ITM'),
+        company: '',
+        model: '',
+        scope: '',
+        item_type: 'owned',
+        target_event_types: '',
+        estimated_rent_price: '',
+        min_price: '',
+        security_deposit: '',
+        reorder_level: 1,
         total_quantity: 1,
         unit: 'piece',
         purchase_price: '',
@@ -123,6 +152,150 @@ export function AddItemButton() {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Company' : 'कंपनी'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.company}
+                    onChange={(e) =>
+                      setFormData({ ...formData, company: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="e.g., Martin, Chauvet"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Model' : 'मॉडल'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.model}
+                    onChange={(e) =>
+                      setFormData({ ...formData, model: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="e.g., MAC 2000"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Scope' : 'स्कोप'}
+                  </label>
+                  <select
+                    value={formData.scope}
+                    onChange={(e) =>
+                      setFormData({ ...formData, scope: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="local">Local</option>
+                    <option value="national">National</option>
+                    <option value="international">International</option>
+                    <option value="both">Both Local & International</option>
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Item Type' : 'सामान प्रकार'}
+                  </label>
+                  <select
+                    value={formData.item_type}
+                    onChange={(e) =>
+                      setFormData({ ...formData, item_type: e.target.value as any })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  >
+                    <option value="owned">Owned</option>
+                    <option value="external">External Rental</option>
+                    <option value="both">Owned & External</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Target Event Types' : 'लक्ष्य इवेंट प्रकार'}
+                  </label>
+                  <input
+                    type="text"
+                    value={formData.target_event_types}
+                    onChange={(e) =>
+                      setFormData({ ...formData, target_event_types: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                    placeholder="e.g., Wedding, Corporate, Festival"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Est. Rent Price (₹/day)' : 'अनुमानित किराया (₹/दिन)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.estimated_rent_price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, estimated_rent_price: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Min Rental Price (₹)' : 'न्यूनतम किराया (₹)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.min_price}
+                    onChange={(e) =>
+                      setFormData({ ...formData, min_price: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Security Deposit (₹)' : 'सुरक्षा जमा (₹)'}
+                  </label>
+                  <input
+                    type="number"
+                    value={formData.security_deposit}
+                    onChange={(e) =>
+                      setFormData({ ...formData, security_deposit: e.target.value })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="block text-sm font-medium mb-1">
+                    {language === 'en' ? 'Reorder Level' : 'पुनः ऑर्डर स्तर'}
+                  </label>
+                  <input
+                    required
+                    type="number"
+                    min="1"
+                    value={formData.reorder_level}
+                    onChange={(e) =>
+                      setFormData({ ...formData, reorder_level: parseInt(e.target.value) || 1 })
+                    }
+                    className="w-full px-3 py-2 border rounded-md"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium mb-1">
                     {language === 'en' ? 'Quantity *' : 'मात्रा *'}
                   </label>
                   <input
@@ -138,25 +311,6 @@ export function AddItemButton() {
                     }
                     className="w-full px-3 py-2 border rounded-md"
                   />
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium mb-1">Unit *</label>
-                  <select
-                    required
-                    value={formData.unit}
-                    onChange={(e) =>
-                      setFormData({ ...formData, unit: e.target.value })
-                    }
-                    className="w-full px-3 py-2 border rounded-md"
-                  >
-                    <option value="piece">Piece</option>
-                    <option value="set">Set</option>
-                    <option value="pair">Pair</option>
-                    <option value="meter">Meter</option>
-                    <option value="kg">Kg</option>
-                    <option value="liter">Liter</option>
-                  </select>
                 </div>
               </div>
 
