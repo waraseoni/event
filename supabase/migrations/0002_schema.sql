@@ -8,69 +8,69 @@
 -- ================================================================
 
 -- contacts
-ALTER TABLE contacts ADD COLUMN IF NOT EXISTS segment TEXT;
-ALTER TABLE contacts ADD COLUMN IF NOT EXISTS credit_days INTEGER DEFAULT 0;
-ALTER TABLE contacts ADD COLUMN IF NOT EXISTS contact_person TEXT;
-ALTER TABLE contacts ADD COLUMN IF NOT EXISTS follow_up_date DATE;
-ALTER TABLE contacts ADD COLUMN IF NOT EXISTS source TEXT;
+ALTER TABLE IF EXISTS contacts ADD COLUMN IF NOT EXISTS segment TEXT;
+ALTER TABLE IF EXISTS contacts ADD COLUMN IF NOT EXISTS credit_days INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS contacts ADD COLUMN IF NOT EXISTS contact_person TEXT;
+ALTER TABLE IF EXISTS contacts ADD COLUMN IF NOT EXISTS follow_up_date DATE;
+ALTER TABLE IF EXISTS contacts ADD COLUMN IF NOT EXISTS source TEXT;
 
 -- inventory_items (owner ke items: company, model, scope, type, target event, rent price)
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS category_id UUID;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS company TEXT;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS model TEXT;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS scope TEXT;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS item_type TEXT CHECK (item_type IN ('owned', 'leased')) DEFAULT 'owned';
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS target_event_types TEXT[];
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS estimated_rent_price DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS min_price DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS security_deposit DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS hsn_code TEXT;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS images TEXT[];
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS reorder_level INTEGER DEFAULT 1;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS location_id UUID;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS owned_quantity INTEGER; -- separate from available_quantity
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS category_id UUID;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS company TEXT;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS model TEXT;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS scope TEXT;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS item_type TEXT CHECK (item_type IN ('owned', 'leased')) DEFAULT 'owned';
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS target_event_types TEXT[];
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS estimated_rent_price DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS min_price DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS security_deposit DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS hsn_code TEXT;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS images TEXT[];
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS reorder_level INTEGER DEFAULT 1;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS location_id UUID;
+ALTER TABLE IF EXISTS inventory_items ADD COLUMN IF NOT EXISTS owned_quantity INTEGER; -- separate from available_quantity
 
 -- pricing_rates
-ALTER TABLE pricing_rates ADD COLUMN IF NOT EXISTS weekend_rate DECIMAL(12, 2);
-ALTER TABLE pricing_rates ADD COLUMN IF NOT EXISTS slab JSONB DEFAULT '[]'::jsonb;
+ALTER TABLE IF EXISTS pricing_rates ADD COLUMN IF NOT EXISTS weekend_rate DECIMAL(12, 2);
+ALTER TABLE IF EXISTS pricing_rates ADD COLUMN IF NOT EXISTS slab JSONB DEFAULT '[]'::jsonb;
 
 -- events
-ALTER TABLE events ADD COLUMN IF NOT EXISTS event_no TEXT UNIQUE;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS quote_id UUID;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS start_datetime TIMESTAMPTZ;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS venue TEXT;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS client_advance DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS tax_mode TEXT CHECK (tax_mode IN ('none', 'gst')) DEFAULT 'none';
-ALTER TABLE events ADD COLUMN IF NOT EXISTS subtotal DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS tax_amount DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS created_by UUID;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS event_no TEXT UNIQUE;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS quote_id UUID;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS start_datetime TIMESTAMPTZ;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS venue TEXT;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS client_advance DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS tax_mode TEXT CHECK (tax_mode IN ('none', 'gst')) DEFAULT 'none';
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS subtotal DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS tax_amount DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS events ADD COLUMN IF NOT EXISTS created_by UUID;
 
 -- event_items
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS quote_item_id UUID;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS source TEXT CHECK (source IN ('own', 'rented_in')) DEFAULT 'own';
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS cost_line DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS pickup_datetime TIMESTAMPTZ;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS return_datetime TIMESTAMPTZ;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS picked_qty INTEGER DEFAULT 0;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS returned_qty INTEGER DEFAULT 0;
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS damaged_qty INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS quote_item_id UUID;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS source TEXT CHECK (source IN ('own', 'rented_in')) DEFAULT 'own';
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS cost_line DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS pickup_datetime TIMESTAMPTZ;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS return_datetime TIMESTAMPTZ;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS picked_qty INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS returned_qty INTEGER DEFAULT 0;
+ALTER TABLE IF EXISTS event_items ADD COLUMN IF NOT EXISTS damaged_qty INTEGER DEFAULT 0;
 
 -- worker_assignments -> add payroll fields
-ALTER TABLE worker_assignments ADD COLUMN IF NOT EXISTS wage_basis TEXT CHECK (wage_basis IN ('daily_wage', 'salary', 'fixed')) DEFAULT 'daily_wage';
-ALTER TABLE worker_assignments ADD COLUMN IF NOT EXISTS ot_hours DECIMAL(6, 2) DEFAULT 0;
-ALTER TABLE worker_assignments ADD COLUMN IF NOT EXISTS ot_rate DECIMAL(12, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS worker_assignments ADD COLUMN IF NOT EXISTS wage_basis TEXT CHECK (wage_basis IN ('daily_wage', 'salary', 'fixed')) DEFAULT 'daily_wage';
+ALTER TABLE IF EXISTS worker_assignments ADD COLUMN IF NOT EXISTS ot_hours DECIMAL(6, 2) DEFAULT 0;
+ALTER TABLE IF EXISTS worker_assignments ADD COLUMN IF NOT EXISTS ot_rate DECIMAL(12, 2) DEFAULT 0;
 
 -- payments -> add invoice/payroll linkage + party type
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS invoice_id UUID;
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS staff_payroll_id UUID;
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS party_type TEXT CHECK (party_type IN ('client', 'vendor', 'staff', 'other'));
+ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS invoice_id UUID;
+ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS staff_payroll_id UUID;
+ALTER TABLE IF EXISTS payments ADD COLUMN IF NOT EXISTS party_type TEXT CHECK (party_type IN ('client', 'vendor', 'staff', 'other'));
 
 -- system_settings -> add business config
-ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS default_tax_mode TEXT CHECK (default_tax_mode IN ('none', 'gst')) DEFAULT 'none';
-ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS state_code TEXT;
-ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS invoice_prefix TEXT DEFAULT 'INV';
-ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS quote_prefix TEXT DEFAULT 'Q';
-ALTER TABLE system_settings ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'INR';
+ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS default_tax_mode TEXT CHECK (default_tax_mode IN ('none', 'gst')) DEFAULT 'none';
+ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS state_code TEXT;
+ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS invoice_prefix TEXT DEFAULT 'INV';
+ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS quote_prefix TEXT DEFAULT 'Q';
+ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'INR';
 
 -- ================================================================
 -- (B) CREATE GENUINELY-NEW TABLES
@@ -474,44 +474,57 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- ================================================================
 -- (B+) Foreign Key Constraints — add after all tables exist
 -- ================================================================
-ALTER TABLE inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_category; ALTER TABLE inventory_items ADD CONSTRAINT fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
-ALTER TABLE inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_location; ALTER TABLE inventory_items ADD CONSTRAINT fk_inventory_location FOREIGN KEY (location_id) REFERENCES item_locations(id);
-ALTER TABLE events DROP CONSTRAINT IF EXISTS fk_events_quote; ALTER TABLE events ADD CONSTRAINT fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
-ALTER TABLE events DROP CONSTRAINT IF EXISTS fk_events_created_by; ALTER TABLE events ADD CONSTRAINT fk_events_created_by FOREIGN KEY (created_by) REFERENCES profiles(id);
-ALTER TABLE event_items DROP CONSTRAINT IF EXISTS fk_event_items_quote; ALTER TABLE event_items ADD CONSTRAINT fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
-ALTER TABLE payments DROP CONSTRAINT IF EXISTS fk_payments_invoice; ALTER TABLE payments ADD CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
-ALTER TABLE payments DROP CONSTRAINT IF EXISTS fk_payments_payroll; ALTER TABLE payments ADD CONSTRAINT fk_payments_payroll FOREIGN KEY (staff_payroll_id) REFERENCES payroll_entries(id) ON DELETE SET NULL;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'inventory_items') THEN
+    ALTER TABLE IF EXISTS inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_category;
+    ALTER TABLE IF EXISTS inventory_items ADD CONSTRAINT fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
+    ALTER TABLE IF EXISTS inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_location;
+    ALTER TABLE IF EXISTS inventory_items ADD CONSTRAINT fk_inventory_location FOREIGN KEY (location_id) REFERENCES item_locations(id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'events') THEN
+    ALTER TABLE IF EXISTS events DROP CONSTRAINT IF EXISTS fk_events_quote;
+    ALTER TABLE IF EXISTS events ADD CONSTRAINT fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
+    ALTER TABLE IF EXISTS events DROP CONSTRAINT IF EXISTS fk_events_created_by;
+    ALTER TABLE IF EXISTS events ADD CONSTRAINT fk_events_created_by FOREIGN KEY (created_by) REFERENCES profiles(id);
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_items') THEN
+    ALTER TABLE IF EXISTS event_items DROP CONSTRAINT IF EXISTS fk_event_items_quote;
+    ALTER TABLE IF EXISTS event_items ADD CONSTRAINT fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
+  END IF;
+END $$;
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payments') THEN
+    ALTER TABLE IF EXISTS payments DROP CONSTRAINT IF EXISTS fk_payments_invoice;
+    ALTER TABLE IF EXISTS payments ADD CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
+    ALTER TABLE IF EXISTS payments DROP CONSTRAINT IF EXISTS fk_payments_payroll;
+    ALTER TABLE IF EXISTS payments ADD CONSTRAINT fk_payments_payroll FOREIGN KEY (staff_payroll_id) REFERENCES payroll_entries(id) ON DELETE SET NULL;
+  END IF;
+END $$;
 
 -- ================================================================
--- (C) INDEXES for new tables
+-- (C) INDEXES for new tables — wrapped in DO blocks
 -- ================================================================
-CREATE INDEX IF NOT EXISTS idx_profiles_user ON profiles(user_id);
-CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role);
-CREATE INDEX IF NOT EXISTS idx_item_categories_parent ON item_categories(parent_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category_id);
-CREATE INDEX IF NOT EXISTS idx_inventory_company ON inventory_items(company);
-CREATE INDEX IF NOT EXISTS idx_inventory_item_type ON inventory_items(item_type);
-CREATE INDEX IF NOT EXISTS idx_inventory_location ON inventory_items(location_id);
-CREATE INDEX IF NOT EXISTS idx_pricing_slab ON pricing_rates(slab);
-CREATE INDEX IF NOT EXISTS idx_special_rates_dates ON special_rates(start_date, end_date);
-CREATE INDEX IF NOT EXISTS idx_quotes_client ON quotes(client_id);
-CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status);
-CREATE INDEX IF NOT EXISTS idx_events_quote ON events(quote_id);
-CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_datetime);
-CREATE INDEX IF NOT EXISTS idx_event_staff_event ON event_staff(event_id);
-CREATE INDEX IF NOT EXISTS idx_event_tasks_event ON event_tasks(event_id);
-CREATE INDEX IF NOT EXISTS idx_event_expenses_event ON event_expenses(event_id);
-CREATE INDEX IF NOT EXISTS idx_rentals_party ON rental_contracts(party_id);
-CREATE INDEX IF NOT EXISTS idx_rentals_event ON rental_contracts(event_id);
-CREATE INDEX IF NOT EXISTS idx_rentals_direction ON rental_contracts(direction, status);
-CREATE INDEX IF NOT EXISTS idx_attendance_staff_date ON attendance(staff_id, date);
-CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month);
-CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id);
-CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status);
-CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at);
-CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read);
-CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id);
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN CREATE INDEX IF NOT EXISTS idx_profiles_user ON profiles(user_id); CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_categories') THEN CREATE INDEX IF NOT EXISTS idx_item_categories_parent ON item_categories(parent_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'inventory_items') THEN CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category_id); CREATE INDEX IF NOT EXISTS idx_inventory_company ON inventory_items(company); CREATE INDEX IF NOT EXISTS idx_inventory_item_type ON inventory_items(item_type); CREATE INDEX IF NOT EXISTS idx_inventory_location ON inventory_items(location_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'pricing_rates') THEN CREATE INDEX IF NOT EXISTS idx_pricing_slab ON pricing_rates(slab); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'special_rates') THEN CREATE INDEX IF NOT EXISTS idx_special_rates_dates ON special_rates(start_date, end_date); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'quotes') THEN CREATE INDEX IF NOT EXISTS idx_quotes_client ON quotes(client_id); CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'events') THEN CREATE INDEX IF NOT EXISTS idx_events_quote ON events(quote_id); CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_datetime); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_staff') THEN CREATE INDEX IF NOT EXISTS idx_event_staff_event ON event_staff(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_tasks') THEN CREATE INDEX IF NOT EXISTS idx_event_tasks_event ON event_tasks(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_expenses') THEN CREATE INDEX IF NOT EXISTS idx_event_expenses_event ON event_expenses(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'rental_contracts') THEN CREATE INDEX IF NOT EXISTS idx_rentals_party ON rental_contracts(party_id); CREATE INDEX IF NOT EXISTS idx_rentals_event ON rental_contracts(event_id); CREATE INDEX IF NOT EXISTS idx_rentals_direction ON rental_contracts(direction, status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attendance') THEN CREATE INDEX IF NOT EXISTS idx_attendance_staff_date ON attendance(staff_id, date); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payroll_runs') THEN CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id); CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id); CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'stock_movements') THEN CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications') THEN CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id); END IF; END $$;
 
 -- ================================================================
 -- (D) updated_at triggers for new tables
