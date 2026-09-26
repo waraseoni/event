@@ -15,7 +15,7 @@ ALTER TABLE contacts ADD COLUMN IF NOT EXISTS follow_up_date DATE;
 ALTER TABLE contacts ADD COLUMN IF NOT EXISTS source TEXT;
 
 -- inventory_items (owner ke items: company, model, scope, type, target event, rent price)
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS category_id UUID REFERENCES item_categories(id);
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS category_id UUID;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS company TEXT;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS model TEXT;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS scope TEXT;
@@ -27,7 +27,7 @@ ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS security_deposit DECIMAL(12
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS hsn_code TEXT;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS images TEXT[];
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS reorder_level INTEGER DEFAULT 1;
-ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS location_id UUID REFERENCES item_locations(id);
+ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS location_id UUID;
 ALTER TABLE inventory_items ADD COLUMN IF NOT EXISTS owned_quantity INTEGER; -- separate from available_quantity
 
 -- pricing_rates
@@ -36,17 +36,17 @@ ALTER TABLE pricing_rates ADD COLUMN IF NOT EXISTS slab JSONB DEFAULT '[]'::json
 
 -- events
 ALTER TABLE events ADD COLUMN IF NOT EXISTS event_no TEXT UNIQUE;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS quote_id UUID REFERENCES quotes(id) ON DELETE SET NULL;
+ALTER TABLE events ADD COLUMN IF NOT EXISTS quote_id UUID;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS start_datetime TIMESTAMPTZ;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS venue TEXT;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS client_advance DECIMAL(12, 2) DEFAULT 0;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS tax_mode TEXT CHECK (tax_mode IN ('none', 'gst')) DEFAULT 'none';
 ALTER TABLE events ADD COLUMN IF NOT EXISTS subtotal DECIMAL(12, 2) DEFAULT 0;
 ALTER TABLE events ADD COLUMN IF NOT EXISTS tax_amount DECIMAL(12, 2) DEFAULT 0;
-ALTER TABLE events ADD COLUMN IF NOT EXISTS created_by UUID REFERENCES profiles(id);
+ALTER TABLE events ADD COLUMN IF NOT EXISTS created_by UUID;
 
 -- event_items
-ALTER TABLE event_items ADD COLUMN IF NOT EXISTS quote_item_id UUID REFERENCES quote_items(id) ON DELETE SET NULL;
+ALTER TABLE event_items ADD COLUMN IF NOT EXISTS quote_item_id UUID;
 ALTER TABLE event_items ADD COLUMN IF NOT EXISTS source TEXT CHECK (source IN ('own', 'rented_in')) DEFAULT 'own';
 ALTER TABLE event_items ADD COLUMN IF NOT EXISTS cost_line DECIMAL(12, 2) DEFAULT 0;
 ALTER TABLE event_items ADD COLUMN IF NOT EXISTS pickup_datetime TIMESTAMPTZ;
@@ -61,8 +61,8 @@ ALTER TABLE worker_assignments ADD COLUMN IF NOT EXISTS ot_hours DECIMAL(6, 2) D
 ALTER TABLE worker_assignments ADD COLUMN IF NOT EXISTS ot_rate DECIMAL(12, 2) DEFAULT 0;
 
 -- payments -> add invoice/payroll linkage + party type
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS invoice_id UUID REFERENCES invoices(id) ON DELETE SET NULL;
-ALTER TABLE payments ADD COLUMN IF NOT EXISTS staff_payroll_id UUID REFERENCES payroll_entries(id) ON DELETE SET NULL;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS invoice_id UUID;
+ALTER TABLE payments ADD COLUMN IF NOT EXISTS staff_payroll_id UUID;
 ALTER TABLE payments ADD COLUMN IF NOT EXISTS party_type TEXT CHECK (party_type IN ('client', 'vendor', 'staff', 'other'));
 
 -- system_settings -> add business config
@@ -470,6 +470,17 @@ CREATE TABLE IF NOT EXISTS audit_log (
     ip TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
+
+-- ================================================================
+-- (B+) Foreign Key Constraints — add after all tables exist
+-- ================================================================
+ALTER TABLE inventory_items ADD CONSTRAINT IF NOT EXISTS fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
+ALTER TABLE inventory_items ADD CONSTRAINT IF NOT EXISTS fk_inventory_location FOREIGN KEY (location_id) REFERENCES item_locations(id);
+ALTER TABLE events ADD CONSTRAINT IF NOT EXISTS fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
+ALTER TABLE events ADD CONSTRAINT IF NOT EXISTS fk_events_created_by FOREIGN KEY (created_by) REFERENCES profiles(id);
+ALTER TABLE event_items ADD CONSTRAINT IF NOT EXISTS fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
+ALTER TABLE payments ADD CONSTRAINT IF NOT EXISTS fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
+ALTER TABLE payments ADD CONSTRAINT IF NOT EXISTS fk_payments_payroll FOREIGN KEY (staff_payroll_id) REFERENCES payroll_entries(id) ON DELETE SET NULL;
 
 -- ================================================================
 -- (C) INDEXES for new tables
