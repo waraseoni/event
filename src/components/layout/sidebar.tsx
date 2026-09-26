@@ -12,7 +12,10 @@ import {
   LogOut,
   Settings,
   Menu,
-  X
+  X,
+  User,
+  Truck,
+  Receipt,
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
@@ -36,9 +39,13 @@ export function Sidebar() {
   const navigation = [
     { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
     { name: t('nav.contacts'), href: '/contacts', icon: Users },
+    { name: t('nav.clients'), href: '/clients', icon: User },
     { name: t('nav.inventory'), href: '/inventory', icon: Package },
     { name: t('nav.pricing'), href: '/pricing', icon: IndianRupee },
     { name: t('nav.events'), href: '/events', icon: CalendarDays },
+    { name: t('nav.rentals'), href: '/rentals', icon: Truck },
+    { name: t('nav.staff'), href: '/staff', icon: Users },
+    { name: t('nav.billing'), href: '/billing', icon: Receipt },
     { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ]

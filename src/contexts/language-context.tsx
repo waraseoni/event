@@ -16,9 +16,13 @@ const translations = {
     // Navigation
     'nav.dashboard': 'Dashboard',
     'nav.contacts': 'Contacts',
+    'nav.clients': 'Clients',
     'nav.inventory': 'Inventory',
     'nav.pricing': 'Pricing',
     'nav.events': 'Events',
+    'nav.rentals': 'Rentals',
+    'nav.staff': 'Staff & Payroll',
+    'nav.billing': 'Billing',
     'nav.reports': 'Reports',
     'nav.settings': 'Settings',
     'nav.login': 'Login',
@@ -350,7 +354,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState<Language>('en')
 
   const t = (key: string): string => {
-    return translations[language][key as keyof typeof translations.en] || key
+    return (translations[language] as any)[key] || key
   }
 
   return (
