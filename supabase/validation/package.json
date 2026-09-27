@@ -5,7 +5,9 @@
   "description": "Executes supabase/schema.sql against a real Postgres (PGlite/WASM) to prove it runs and is idempotent.",
   "type": "commonjs",
   "scripts": {
-    "validate": "node assert-schema.js"
+    "validate": "node assert-schema.js",
+    "audit:columns": "node audit-columns.js",
+    "check": "npm run validate && npm run audit:columns"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8"
