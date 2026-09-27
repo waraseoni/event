@@ -299,6 +299,70 @@ DO $$ BEGIN
 END $$;
 
 -- ================================================================
+-- Auth bootstrap — break the RLS chicken-and-egg deadlock
+-- ================================================================
+-- Without this, nobody can ever use the app:
+--   * current_user_role() falls back to 'staff' when no profile row exists
+--   * reading system_settings requires 'owner' or 'manager'
+--   * creating the very first profile also requires 'owner' or 'manager'
+-- The first user could therefore never bootstrap, and no user could ever
+-- become owner. handle_new_user() runs as SECURITY DEFINER (so it bypasses
+-- RLS) and grants 'owner' to the earliest account, 'staff' to the rest.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, email, role, display_name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    CASE
+      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'owner'
+      ELSE 'staff'
+    END,
+    COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.raw_user_meta_data ->> 'name')
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.triggers
+             WHERE trigger_name = 'on_auth_user_created') THEN
+    EXECUTE 'DROP TRIGGER on_auth_user_created ON auth.users';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'auth' AND table_name = 'users')
+     AND EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_name = 'profiles') THEN
+    CREATE TRIGGER on_auth_user_created
+      AFTER INSERT ON auth.users
+      FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+  END IF;
+END $$;
+
+-- Backfill profiles for accounts that already exist (the trigger only fires on
+-- new signups). Earliest account becomes owner. Idempotent.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'auth' AND table_name = 'users')
+     AND EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_name = 'profiles') THEN
+    EXECUTE $backfill$
+      INSERT INTO public.profiles (user_id, email, role, display_name)
+      SELECT u.id,
+             u.email,
+             CASE WHEN u.id = (SELECT id FROM auth.users ORDER BY created_at ASC, id ASC LIMIT 1)
+                  THEN 'owner' ELSE 'staff' END,
+             COALESCE(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name')
+      FROM auth.users u
+      WHERE u.email IS NOT NULL
+      ON CONFLICT (user_id) DO NOTHING
+    $backfill$;
+  END IF;
+END $$;
+
+-- ================================================================
 -- Storage buckets (idempotent)
 -- ================================================================
 INSERT INTO storage.buckets (id, name, public) VALUES ('system-assets', 'system-assets', true) ON CONFLICT (id) DO NOTHING;

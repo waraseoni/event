@@ -35,6 +35,38 @@ const DEFAULT_SETTINGS: Partial<SystemSettings> = {
   accent_color: 'fuchsia',
 }
 
+// Supabase/PostgREST errors serialise to `{}` when logged directly, which hides
+// the real cause. Flatten them so RLS denials are actually diagnosable.
+type PostgrestLike = {
+  message?: string
+  code?: string
+  details?: string
+  hint?: string
+  status?: number
+}
+
+function describeError(err: unknown): string {
+  const e = (err ?? {}) as PostgrestLike
+  const parts = [e.code ? `[${e.code}]` : null, e.status ? `HTTP ${e.status}` : null]
+    .filter(Boolean)
+    .join(' ')
+  const detail = [e.message || 'Failed to load settings', e.details, e.hint]
+    .filter(Boolean)
+    .join(' | ')
+  return parts ? `${parts} ${detail}` : detail
+}
+
+function logError(label: string, err: unknown) {
+  const e = (err ?? {}) as PostgrestLike
+  console.error(label, {
+    code: e.code,
+    status: e.status,
+    message: e.message,
+    details: e.details,
+    hint: e.hint,
+  })
+}
+
 export function SystemSettingsProvider({ children }: { children: ReactNode }) {
   const [settings, setSettings] = useState<SystemSettings | null>(null)
   const [loading, setLoading] = useState(true)
@@ -45,31 +77,52 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
       setLoading(true)
       setError(null)
 
+      // Settings are RLS-protected (owner/manager only). Querying before the
+      // session exists just produces a guaranteed denial, so wait for auth and
+      // stay quiet while logged out.
+      const { data: { session } } = await supabase.auth.getSession()
+      if (!session?.user) {
+        setSettings(null)
+        return
+      }
+
+      // maybeSingle() returns null on 0 rows instead of raising PGRST116.
       const { data, error: fetchError } = await supabase
         .from('system_settings')
         .select('*')
-        .single()
+        .maybeSingle()
 
       if (fetchError) {
-        // If no settings exist, create default
         if (fetchError.code === 'PGRST116') {
+          // No settings row yet - seed one. A staff/manager account is not
+          // allowed to INSERT, so fall back to defaults rather than breaking
+          // the whole UI for a missing row.
           const { data: newData, error: createError } = await (supabase
             .from('system_settings')
             .insert as any)([DEFAULT_SETTINGS])
             .select()
-            .single()
+            .maybeSingle()
 
-          if (createError) throw createError
+          if (createError) {
+            logError('Could not seed system settings:', createError)
+            setError(describeError(createError))
+            setSettings(null)
+            return
+          }
           setSettings(newData)
           return
         }
         throw fetchError
       }
 
+      if (!data) {
+        setSettings(null)
+        return
+      }
       setSettings(data)
-    } catch (err: any) {
-      console.error('Error fetching system settings:', err)
-      setError(err.message || 'Failed to load settings')
+    } catch (err: unknown) {
+      logError('Error fetching system settings:', err)
+      setError(describeError(err))
     } finally {
       setLoading(false)
     }
@@ -87,10 +140,14 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
           .select()
           .single()
 
-        if (createError) throw createError
-        setSettings(newData)
-        return
+      if (createError) {
+        logError('Error creating settings:', createError)
+        throw createError
       }
+      setSettings(newData)
+      return
+    }
+
 
       // Update existing settings
       const { data: updatedData, error: updateError } = await (supabase
@@ -100,11 +157,14 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
         .select()
         .single()
 
-      if (updateError) throw updateError
+      if (updateError) {
+        logError('Error updating settings:', updateError)
+        throw updateError
+      }
       setSettings(updatedData)
-    } catch (err: any) {
-      console.error('Error updating settings:', err)
-      setError(err.message || 'Failed to update settings')
+    } catch (err: unknown) {
+      logError('Error updating settings:', err)
+      setError(describeError(err))
       throw err
     }
   }
@@ -164,6 +224,21 @@ export function SystemSettingsProvider({ children }: { children: ReactNode }) {
 
   useEffect(() => {
     fetchSettings()
+
+    // The provider is mounted above the auth boundary, so reload when the
+    // session appears or disappears instead of only on first paint.
+    const { data: sub } = supabase.auth.onAuthStateChange((event) => {
+      if (
+        event === 'SIGNED_IN' ||
+        event === 'SIGNED_OUT' ||
+        event === 'TOKEN_REFRESHED' ||
+        event === 'USER_UPDATED'
+      ) {
+        fetchSettings()
+      }
+    })
+
+    return () => sub.subscription.unsubscribe()
   }, [])
 
   return (

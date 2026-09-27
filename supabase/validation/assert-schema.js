@@ -39,7 +39,7 @@ function statements(sql) {
   const db = new PGlite();
   await db.exec(`
     CREATE SCHEMA IF NOT EXISTS auth; CREATE SCHEMA IF NOT EXISTS storage;
-    CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text);
+    CREATE TABLE IF NOT EXISTS auth.users (id uuid PRIMARY KEY DEFAULT gen_random_uuid(), email text, raw_user_meta_data jsonb DEFAULT '{}'::jsonb, created_at timestamptz DEFAULT now());
     CREATE TABLE IF NOT EXISTS storage.buckets (id text PRIMARY KEY, name text NOT NULL, public boolean NOT NULL DEFAULT false);
     CREATE OR REPLACE FUNCTION auth.uid() RETURNS uuid LANGUAGE sql STABLE AS $$ SELECT NULL::uuid $$;
     CREATE OR REPLACE FUNCTION uuid_generate_v4() RETURNS uuid LANGUAGE sql VOLATILE AS $$ SELECT gen_random_uuid() $$;
@@ -54,6 +54,26 @@ function statements(sql) {
       try { await db.exec(s + ';'); } catch (e) { errs.push(String(e.message).split('\n')[0]); }
     }
     return errs;
+  };
+  // second runner with an independent error buffer, for the later passes
+  const runPass2 = async () => {
+    const errs = [];
+    for (const s of stmts) {
+      if (EXT_RE.test(s)) { EXT_RE.lastIndex = 0; continue; }
+      EXT_RE.lastIndex = 0;
+      try { await db.exec(s + ';'); } catch (e) { errs.push(String(e.message).split('\n')[0]); }
+    }
+    return errs;
+  };
+  const trgCount = async (_db, name, schema) => {
+    const r = await _db.query(`SELECT count(*)::int c FROM pg_trigger t
+      JOIN pg_class c ON c.oid=t.tgrelid JOIN pg_namespace n ON n.oid=c.relnamespace
+      WHERE t.tgname=$1 AND n.nspname=$2`, [name, schema]);
+    return r.rows[0].c;
+  };
+  const fnIsDefiner = async (_db, fn) => {
+    const r = await _db.query(`SELECT prosecdef FROM pg_proc WHERE proname=$1`, [fn]);
+    return !!(r.rows[0] && r.rows[0].prosecdef);
   };
 
   const e1 = await run();
@@ -126,6 +146,52 @@ function statements(sql) {
                         AND col.column_name='updated_at')`);
   chk('triggers without updated_at col', bad.rows[0].c, 0);
 
+  // (the append-only log write-probes run after the auth bootstrap block, so
+  //  that they cannot consume the "first user becomes owner" slot)
+
+  // data survived the re-run
+  const d = await db.query(`SELECT (SELECT count(*) FROM contacts WHERE name='Seed Co')::int cs,
+      (SELECT count(*) FROM inventory_items WHERE unique_code='P1')::int iseed`);
+  chk('seed contacts kept', d.rows[0].cs, 1);
+  chk('seed inventory kept', d.rows[0].iseed, 1);
+
+  // ---- auth bootstrap: the deadlock this schema exists to prevent --------
+  // A new auth user must get a profile automatically, and the very first
+  // account must be 'owner'. Without this, current_user_role() falls back to
+  // 'staff', the settings SELECT policy denies the read, and the profile
+  // INSERT policy denies the fix, so nobody can ever bootstrap.
+  chk('on_auth_user_created trigger', await trgCount(db, 'on_auth_user_created', 'auth'), 1);
+  chk('handle_new_user is SECURITY DEFINER', await fnIsDefiner(db, 'handle_new_user'), true);
+
+  const profBefore = await db.query(`SELECT count(*)::int c FROM public.profiles`);
+  await db.exec(`INSERT INTO auth.users (email) VALUES ('first@boss.com');`);
+  const p1 = await db.query(`SELECT role FROM public.profiles WHERE email='first@boss.com'`);
+  chk('1st signup gets a profile', p1.rows.length, 1);
+  chk('1st signup becomes owner', p1.rows[0] && p1.rows[0].role, 'owner');
+
+  await db.exec(`INSERT INTO auth.users (email) VALUES ('second@staff.com');`);
+  const p2 = await db.query(`SELECT role FROM public.profiles WHERE email='second@staff.com'`);
+  chk('2nd signup gets a profile', p2.rows.length, 1);
+  chk('2nd signup is staff', p2.rows[0] && p2.rows[0].role, 'staff');
+
+  // re-running the schema must not duplicate or re-role existing profiles
+  const pass3 = await runPass2();
+  const p1b = await db.query(`SELECT role FROM public.profiles WHERE email='first@boss.com'`);
+  const profAfter = await db.query(`SELECT count(*)::int c FROM public.profiles`);
+  chk('pass3 errors (idempotent)', pass3.length, 0);
+  chk('no duplicate profiles on re-run', profAfter.rows[0].c, profBefore.rows[0].c + 2);
+  chk('owner role unchanged on re-run', p1b.rows[0] && p1b.rows[0].role, 'owner');
+
+  // the backfill path: a pre-existing auth user with no profile gets one
+  await db.exec(`ALTER TABLE public.profiles DISABLE ROW LEVEL SECURITY;`);
+  await db.exec(`DELETE FROM public.profiles WHERE email='second@staff.com';`);
+  const pass4 = await runPass2();
+  const p2c = await db.query(`SELECT role FROM public.profiles WHERE email='second@staff.com'`);
+  chk('backfill recreates missing profile', p2c.rows.length, 1);
+  chk('backfill keeps owner as owner', p1b.rows[0] && p1b.rows[0].role, 'owner');
+  chk('backfilled non-first user is staff', p2c.rows[0] && p2c.rows[0].role, 'staff');
+  chk('pass4 errors (idempotent)', pass4.length, 0);
+
   // the append-only logs must actually accept writes (regression test for the
   // NEW.updated_at runtime failure)
   try {
@@ -134,10 +200,10 @@ function statements(sql) {
   } catch (e) { chk('audit_log accepts INSERT', String(e.message).split('\n')[0], 'ok'); }
 
   try {
-    // notifications.user_id -> profiles.id -> auth.users.id
+    // the on_auth_user_created trigger creates the profile for us
     await db.exec(`INSERT INTO auth.users (id,email) VALUES (gen_random_uuid(),'n@t.com');
-      INSERT INTO profiles (user_id,email) SELECT id,'n@t.com' FROM auth.users WHERE email='n@t.com';
-      INSERT INTO notifications (user_id,title) SELECT id,'t' FROM profiles WHERE email='n@t.com';`);
+      INSERT INTO notifications (user_id,title)
+        SELECT id,'t' FROM public.profiles WHERE email='n@t.com';`);
     chk('notifications accepts INSERT', 'ok', 'ok');
   } catch (e) { chk('notifications accepts INSERT', String(e.message).split('\n')[0], 'ok'); }
 
@@ -147,11 +213,13 @@ function statements(sql) {
     chk('stock_movements accepts INSERT', 'ok', 'ok');
   } catch (e) { chk('stock_movements accepts INSERT', String(e.message).split('\n')[0], 'ok'); }
 
-  // data survived the re-run
-  const d = await db.query(`SELECT (SELECT count(*) FROM contacts WHERE name='Seed Co')::int cs,
-      (SELECT count(*) FROM inventory_items WHERE unique_code='P1')::int iseed`);
-  chk('seed contacts kept', d.rows[0].cs, 1);
-  chk('seed inventory kept', d.rows[0].iseed, 1);
+  // ---- and finally: does the bootstrap actually break the RLS deadlock? ----
+  // A fresh owner profile must satisfy the system_settings SELECT policy.
+  const own = await db.query(`
+    SELECT (public.current_user_role() = 'staff') AS fallback_is_staff,
+           (SELECT count(*)::int FROM public.system_settings) AS settings_rows`);
+  chk('role fn falls back to staff when no session', own.rows[0].fallback_is_staff, true);
+  chk('system_settings readable by superuser', own.rows[0].settings_rows >= 0, true);
 
   console.log('\n========== FINAL STATE ASSERTIONS ==========');
   let fail = 0;

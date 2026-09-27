@@ -3,13 +3,13 @@
 -- =============================================================================
 -- Generated: 2026-09-27
 -- Project:  dxinfzajqemeuvamvsbr
-
+--
 -- This single file reproduces the ENTIRE database from scratch and is safe to
 -- re-run any number of times (fully idempotent). It is a merge of:
 ------------------------------------------------------------------------------
 --   1. supabase/backups/live_schema_2026-09-27.sql  (live DB baseline, 9 tables)
 --   2. supabase/migrations/0002_schema.sql          (new tables/columns/FKs)
---   3. supabase/migrations/0003_rls.sql             (RLS policies + storage)
+--   3. supabase/migrations/0003_rls.sql             (RLS + auth bootstrap + storage)
 
 -- USAGE
 --   * Fresh database  : run this file top to bottom. Creates everything.
@@ -37,14 +37,6 @@ CREATE EXTENSION IF NOT EXISTS "pgcrypto";    -- gen_random_uuid()
 -- On a fresh DB these are created; on the live DB they already exist and
 -- CREATE TABLE IF NOT EXISTS makes each statement a safe no-op.
 -- =============================================================================
-
---   (src/types/index.ts declares it as number[]). The type has been filled in
---   below so this reference copy is copy-pasteable; everything else is
---   verbatim as exported.
--- =============================================================================
-
--- WARNING: This schema is for context only and is not meant to be run.
--- Table order and constraints may not be valid for execution.
 
 CREATE TABLE IF NOT EXISTS public.contacts (
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
@@ -283,7 +275,7 @@ ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS invoice_prefix TE
 ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS quote_prefix TEXT DEFAULT 'Q';
 ALTER TABLE IF EXISTS system_settings ADD COLUMN IF NOT EXISTS currency TEXT DEFAULT 'INR';
 
--- ================================================================
+
 -- (B) CREATE GENUINELY-NEW TABLES
 -- ================================================================
 
@@ -685,6 +677,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- ================================================================
 
 -- ================================================================
 -- (B+) Foreign Key Constraints — add after all tables exist
@@ -739,10 +732,10 @@ DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schem
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_runs') THEN CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month); END IF; END $$;
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id); CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id); CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status); END IF; END $$;
 
+
 -- ================================================================
 -- (D) updated_at triggers for new tables
 -- ================================================================
-
 -- NOTE: stock_movements, notifications and audit_log are append-only logs
 -- with no updated_at column, so they intentionally have no updated_at
 -- trigger (the trigger body assigns NEW.updated_at and would fail at
@@ -796,6 +789,7 @@ $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 
 -- Helper macro: wrap RLS setup in DO block checking table existence
 -- ================================================================
+
 
 
 -- Profiles
@@ -1039,7 +1033,6 @@ DO $$ BEGIN
     EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.expenses', policyname), '; ')
       FROM pg_policies WHERE schemaname = 'public' AND tablename = 'expenses'), 'SELECT 1');
     CREATE POLICY "Staff+ read expenses" ON expenses FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
-
     CREATE POLICY "Owner+ manage expenses" ON expenses FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
 END $$;
@@ -1083,6 +1076,72 @@ DO $$ BEGIN
     CREATE POLICY "Owner+ manager update settings" ON system_settings FOR UPDATE USING (public.current_user_role() IN ('owner', 'manager'));
   END IF;
 END $$;
+
+-- ================================================================
+
+-- Auth bootstrap — break the RLS chicken-and-egg deadlock
+-- ================================================================
+-- Without this, nobody can ever use the app:
+--   * current_user_role() falls back to 'staff' when no profile row exists
+--   * reading system_settings requires 'owner' or 'manager'
+--   * creating the very first profile also requires 'owner' or 'manager'
+-- The first user could therefore never bootstrap, and no user could ever
+-- become owner. handle_new_user() runs as SECURITY DEFINER (so it bypasses
+-- RLS) and grants 'owner' to the earliest account, 'staff' to the rest.
+CREATE OR REPLACE FUNCTION public.handle_new_user()
+RETURNS TRIGGER AS $$
+BEGIN
+  INSERT INTO public.profiles (user_id, email, role, display_name)
+  VALUES (
+    NEW.id,
+    NEW.email,
+    CASE
+      WHEN NOT EXISTS (SELECT 1 FROM public.profiles) THEN 'owner'
+      ELSE 'staff'
+    END,
+    COALESCE(NEW.raw_user_meta_data ->> 'full_name', NEW.raw_user_meta_data ->> 'name')
+  )
+  ON CONFLICT (user_id) DO NOTHING;
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql SECURITY DEFINER SET search_path = public;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.triggers
+             WHERE trigger_name = 'on_auth_user_created') THEN
+    EXECUTE 'DROP TRIGGER on_auth_user_created ON auth.users';
+  END IF;
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'auth' AND table_name = 'users')
+     AND EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_name = 'profiles') THEN
+    CREATE TRIGGER on_auth_user_created
+      AFTER INSERT ON auth.users
+      FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
+  END IF;
+END $$;
+
+-- Backfill profiles for accounts that already exist (the trigger only fires on
+-- new signups). Earliest account becomes owner. Idempotent.
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'auth' AND table_name = 'users')
+     AND EXISTS (SELECT 1 FROM information_schema.tables
+             WHERE table_schema = 'public' AND table_name = 'profiles') THEN
+    EXECUTE $backfill$
+      INSERT INTO public.profiles (user_id, email, role, display_name)
+      SELECT u.id,
+             u.email,
+             CASE WHEN u.id = (SELECT id FROM auth.users ORDER BY created_at ASC, id ASC LIMIT 1)
+                  THEN 'owner' ELSE 'staff' END,
+             COALESCE(u.raw_user_meta_data ->> 'full_name', u.raw_user_meta_data ->> 'name')
+      FROM auth.users u
+      WHERE u.email IS NOT NULL
+      ON CONFLICT (user_id) DO NOTHING
+    $backfill$;
+  END IF;
+END $$;
+
 
 -- ================================================================
 -- Storage buckets (idempotent)
