@@ -302,3 +302,58 @@ export interface Invoice {
   status: 'draft' | 'issued' | 'partially_paid' | 'paid' | 'overdue' | 'cancelled'
   created_at: string
 }
+
+// Auth / Access Control Types
+// Mirrors the roles enforced by public.profiles.role and the
+// public.can_assign_role() hierarchy in supabase/schema.sql.
+export type UserRole = 'super_admin' | 'admin' | 'accountant' | 'staff'
+
+export const USER_ROLES: readonly UserRole[] = [
+  'super_admin',
+  'admin',
+  'accountant',
+  'staff',
+]
+
+// Human-facing labels. 'owner'/'manager' were the pre-migration names.
+export const USER_ROLE_LABELS: Record<UserRole, string> = {
+  super_admin: 'Super Admin',
+  admin: 'Admin',
+  accountant: 'Accountant',
+  staff: 'Staff',
+}
+
+// Rank mirrors public.role_rank(). Higher outranks lower. Kept in step with the
+// database so the UI can grey out roles the current user is not allowed to
+// hand out, without a round trip.
+export const USER_ROLE_RANK: Record<UserRole, number> = {
+  super_admin: 4,
+  admin: 3,
+  accountant: 2,
+  staff: 1,
+}
+
+export interface Profile {
+  id: string
+  user_id: string
+  email: string
+  role: UserRole
+  display_name: string | null
+  phone: string | null
+  avatar_url: string | null
+  is_active: boolean
+  created_at: string
+  updated_at: string
+}
+
+export function canAssignRole(actor: UserRole, target: UserRole): boolean {
+  return USER_ROLE_RANK[target] > 0 && USER_ROLE_RANK[actor] > USER_ROLE_RANK[target]
+}
+
+export function assignableRoles(actor: UserRole): UserRole[] {
+  return USER_ROLES.filter((r) => canAssignRole(actor, r))
+}
+
+export function hasRole(actor: UserRole | null | undefined, ...allowed: UserRole[]): boolean {
+  return !!actor && allowed.includes(actor)
+}

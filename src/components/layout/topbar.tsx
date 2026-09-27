@@ -3,12 +3,15 @@
 import { Search, Bell, User as UserIcon, LogOut } from 'lucide-react'
 import { LanguageSwitcher } from './language-switcher'
 import { useLanguage } from '@/contexts/language-context'
+import { useCurrentUser } from '@/contexts/user-context'
 import { supabaseBrowser } from '@/lib/supabase/browser'
+import { USER_ROLE_LABELS } from '@/types'
 import { useRouter } from 'next/navigation'
 import { useState } from 'react'
 
 export function Topbar() {
   const { t, language } = useLanguage()
+  const { displayName, email, role } = useCurrentUser()
   const router = useRouter()
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -18,6 +21,9 @@ export function Topbar() {
     router.push('/auth/login')
     router.refresh()
   }
+
+  const initial = (displayName || email || '?').trim().charAt(0).toUpperCase()
+  const name = displayName || email || (language === 'en' ? 'User' : 'उपयोगकर्ता')
 
   return (
     <header className="hidden md:flex sticky top-0 z-30 h-16 w-full items-center justify-between bg-white/70 dark:bg-[#000000]/70 backdrop-blur-lg border-b border-slate-200 dark:border-slate-800 px-8 shadow-sm">
@@ -37,12 +43,26 @@ export function Topbar() {
         </button>
         <div className="h-6 w-px bg-slate-200 dark:bg-slate-800 mx-1"></div>
         <div className="flex items-center gap-3">
-          <button className="flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-slate-800 p-1.5 pr-3 rounded-xl transition-all border border-slate-200 dark:border-slate-800">
+          <div
+            className="flex items-center gap-2.5 p-1.5 pr-3 rounded-xl border border-slate-200 dark:border-slate-800"
+            title={role ? USER_ROLE_LABELS[role] : undefined}
+          >
             <div className="h-7 w-7 rounded-lg bg-indigo-100 dark:bg-indigo-900/50 flex items-center justify-center">
-              <UserIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              {role ? (
+                <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400">{initial}</span>
+              ) : (
+                <UserIcon className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              )}
             </div>
-            <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">Admin</span>
-          </button>
+            <div className="flex flex-col items-start leading-tight">
+              <span className="text-sm font-semibold text-slate-700 dark:text-slate-300">{name}</span>
+              {role && (
+                <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                  {USER_ROLE_LABELS[role]}
+                </span>
+              )}
+            </div>
+          </div>
           <button onClick={handleLogout} disabled={loggingOut} className="p-2 text-slate-400 hover:text-rose-600 hover:bg-rose-50 dark:hover:bg-rose-950/30 rounded-xl transition-all">
             <LogOut className="h-5 w-5" />
           </button>

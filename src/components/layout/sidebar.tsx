@@ -16,19 +16,36 @@ import {
   User,
   Truck,
   Receipt,
+  ShieldCheck,
 } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 import { useSystemSettings } from '@/contexts/system-settings-context'
 import { LanguageSwitcher } from './language-switcher'
 import { useState, useEffect } from 'react'
 import { supabaseBrowser } from '@/lib/supabase/browser'
+import { useCurrentUser } from '@/contexts/user-context'
+import type { UserRole } from '@/types'
+
+/**
+ * `roles` gates an entry in the nav. Omitted means everyone. This only hides
+ * the link - every action behind it is re-checked server-side, and Row Level
+ * Security is the real boundary.
+ */
+type NavItem = {
+  name: string
+  href: string
+  icon: LucideIcon
+  roles?: UserRole[]
+}
 
 export function Sidebar() {
   const pathname = usePathname()
   const router = useRouter()
   const { t } = useLanguage()
   const { settings } = useSystemSettings()
+  const { role } = useCurrentUser()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [loggingOut, setLoggingOut] = useState(false)
 
@@ -36,7 +53,7 @@ export function Sidebar() {
   const systemShortName = settings?.system_short_name || 'EMS'
   const logoUrl = settings?.logo_url
 
-  const navigation = [
+  const navigation: NavItem[] = [
     { name: t('nav.dashboard'), href: '/', icon: LayoutDashboard },
     { name: t('nav.contacts'), href: '/contacts', icon: Users },
     { name: t('nav.clients'), href: '/clients', icon: User },
@@ -47,8 +64,15 @@ export function Sidebar() {
     { name: t('nav.staff'), href: '/staff', icon: Users },
     { name: t('nav.billing'), href: '/billing', icon: Receipt },
     { name: t('nav.reports'), href: '/reports', icon: BarChart3 },
+    { name: t('nav.users'), href: '/users', icon: ShieldCheck, roles: ['super_admin', 'admin'] },
     { name: t('nav.settings'), href: '/settings', icon: Settings },
   ]
+
+  // role is null until the profile loads, which hides gated items rather than
+  // flashing them at the wrong person.
+  const visibleNavigation = navigation.filter(
+    (item) => !item.roles || (role !== null && item.roles.includes(role))
+  )
 
   useEffect(() => { setMobileMenuOpen(false) }, [pathname])
 
@@ -96,7 +120,7 @@ export function Sidebar() {
         </div>
 
         <nav className="flex-1 overflow-y-auto py-6 px-3 space-y-1.5 custom-scrollbar">
-          {navigation.map((item) => {
+          {visibleNavigation.map((item) => {
             const Icon = item.icon
             const isActive = pathname === item.href
             return (

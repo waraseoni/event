@@ -64,7 +64,7 @@ export interface Database {
           id: string
           user_id: string
           email: string
-          role: 'owner' | 'manager' | 'accountant' | 'staff'
+          role: 'super_admin' | 'admin' | 'accountant' | 'staff'
           display_name: string | null
           phone: string | null
           avatar_url: string | null
@@ -76,7 +76,7 @@ export interface Database {
           id?: string
           user_id: string
           email: string
-          role?: 'owner' | 'manager' | 'accountant' | 'staff'
+          role?: 'super_admin' | 'admin' | 'accountant' | 'staff'
           display_name?: string | null
           phone?: string | null
           avatar_url?: string | null
@@ -88,7 +88,7 @@ export interface Database {
           id?: string
           user_id?: string
           email?: string
-          role?: 'owner' | 'manager' | 'accountant' | 'staff'
+          role?: 'super_admin' | 'admin' | 'accountant' | 'staff'
           display_name?: string | null
           phone?: string | null
           avatar_url?: string | null
@@ -293,6 +293,18 @@ export interface Database {
     Views: { [_ in never]: never }
     Functions: {
       current_user_role: { Args: Record<string, never>; Returns: string }
+      role_rank: { Args: { r: string }; Returns: number }
+      can_assign_role: { Args: { actor_role: string; target_role: string }; Returns: boolean }
+      can_change_profile_privileged: {
+        Args: {
+          actor_role: string
+          new_role: string
+          old_role: string
+          new_is_active: boolean
+          old_is_active: boolean
+        }
+        Returns: boolean
+      }
     }
     Enums: { [_ in never]: never }
     CompositeTypes: { [_ in never]: never }

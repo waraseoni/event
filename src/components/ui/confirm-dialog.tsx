@@ -19,6 +19,9 @@ export function ConfirmDialog({
   description,
   onConfirm,
   loading = false,
+  confirmLabel = 'Delete',
+  loadingLabel = 'Deleting...',
+  destructive = true,
 }: {
   open: boolean
   onOpenChange: (open: boolean) => void
@@ -26,20 +29,32 @@ export function ConfirmDialog({
   description: string
   onConfirm: () => void | Promise<void>
   loading?: boolean
+  confirmLabel?: string
+  loadingLabel?: string
+  destructive?: boolean
 }) {
   return (
-    <AlertDialog open={open}>
-      <AlertDialogTrigger asChild>
-        <div />
-      </AlertDialogTrigger>
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent className="bg-white dark:bg-[#000000]">
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>
           <AlertDialogDescription>{description}</AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>Cancel</Button>
-          <Button variant="destructive" onClick={onConfirm} disabled={loading}>{loading ? 'Deleting...' : 'Delete'}</Button>
+          <Button
+            variant="outline"
+            onClick={() => onOpenChange(false)}
+            disabled={loading}
+          >
+            Cancel
+          </Button>
+          <Button
+            variant={destructive ? 'destructive' : 'default'}
+            onClick={onConfirm}
+            disabled={loading}
+          >
+            {loading ? loadingLabel : confirmLabel}
+          </Button>
         </AlertDialogFooter>
       </AlertDialogContent>
     </AlertDialog>

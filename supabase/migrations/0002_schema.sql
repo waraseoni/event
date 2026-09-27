@@ -80,7 +80,7 @@ CREATE TABLE IF NOT EXISTS profiles (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     user_id UUID NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE UNIQUE,
     email TEXT NOT NULL,
-    role TEXT NOT NULL CHECK (role IN ('owner', 'manager', 'accountant', 'staff')) DEFAULT 'staff',
+    role TEXT NOT NULL CHECK (role IN ('super_admin', 'admin', 'accountant', 'staff')) DEFAULT 'staff',
     display_name TEXT,
     phone TEXT,
     avatar_url TEXT,
