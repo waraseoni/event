@@ -1,5 +1,6 @@
 import { revalidatePath } from 'next/cache'
 import { z } from 'zod'
+import { requireCurrentUser, getCurrentUser } from '@/lib/supabase/session'
 
 export type ActionResult<T = unknown> =
   | { success: true; data: T }
@@ -27,5 +28,23 @@ export function zodServerAction<T extends z.ZodTypeAny>(schema: T) {
     const parsed = schema.safeParse(Object.fromEntries(formData))
     if (!parsed.success) return { success: false, error: 'Validation failed', data: null as T['_output'] | null }
     return { success: true as const, data: parsed.data as T['_output'] }
+  }
+}
+
+export async function authenticatedServerAction<T = unknown>(
+  fn: (user: Awaited<ReturnType<typeof getCurrentUser>>) => Promise<T>,
+  options?: { revalidatePaths?: string[] }
+): Promise<ActionResult<T>> {
+  try {
+    const user = await requireCurrentUser()
+    const data = await fn(user)
+    if (options?.revalidatePaths) {
+      for (const p of options.revalidatePaths) revalidatePath(p)
+    }
+    return { success: true, data }
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Something went wrong'
+    console.error('[serverAction]', message)
+    return { success: false, error: message }
   }
 }

@@ -1,107 +1,36 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/utils'
+import { useState } from 'react'
+import { useTanStackQuery } from '@/hooks/use-query'
+import { useToast } from '@/components/ui/toast'
 import { useLanguage } from '@/contexts/language-context'
+import { getStaff, createStaff, getPayrollRuns } from '@/lib/actions/staff'
+import { formatCurrency } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Briefcase, Plus } from 'lucide-react'
 import type { EmploymentType } from '@/types'
 
 const EMPLOYMENT_TYPES: EmploymentType[] = ['permanent', 'contract', 'daily']
 
-const EMPTY_FORM = {
-  name: '',
-  designation: '',
-  employment_type: 'daily' as EmploymentType,
-  base_salary: '',
-  daily_wage: '',
-}
+const EMPTY_FORM = { name: '', designation: '', employment_type: 'daily' as EmploymentType, base_salary: '', daily_wage: '' }
 
 export default function StaffPage() {
   const { t, language } = useLanguage()
-  const [staff, setStaff] = useState<any[]>([])
-  const [payroll, setPayroll] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { success, error: showError } = useToast()
+  const { data: staff, isLoading, refetch } = useTanStackQuery(['staff'], () => getStaff())
+  const { data: payroll } = useTanStackQuery(['payroll'], () => getPayrollRuns())
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState(EMPTY_FORM)
-
-  async function fetchStaff() {
-    try {
-      // the display name lives on contacts, so join it in
-      const { data, error } = await supabase
-        .from('staff_members')
-        .select('*, contact:contacts(name)')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setStaff(data || [])
-    } catch (error) {
-      console.error('Error fetching staff:', error)
-    }
-  }
-
-  async function fetchPayroll() {
-    try {
-      const { data, error } = await supabase.from('payroll_runs').select('*').order('period_from', { ascending: false }).limit(6)
-      if (error) throw error
-      setPayroll(data || [])
-    } catch {
-      // silent
-    }
-  }
-
-  useEffect(() => {
-    fetchStaff()
-    fetchPayroll()
-  }, [])
+  const [saving, setSaving] = useState(false)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.name.trim()) {
-      setError(language === 'en' ? 'Please enter a name' : 'कृपया नाम दर्ज करें')
-      return
-    }
-    setError('')
-    try {
-      // staff_members has no `name` column - the person lives in `contacts`.
-      // The old form collected a name and then dropped it on the floor, so
-      // every staff row rendered blank. Reuse an existing worker contact with
-      // the same name, otherwise create one, then link to it.
-      const name = formData.name.trim()
-      const { data: existing } = await supabase
-        .from('contacts')
-        .select('id')
-        .eq('name', name)
-        .eq('type', 'worker')
-        .maybeSingle()
-
-      let contactId = existing?.id ?? null
-      if (!contactId) {
-        const { data: created, error: contactError } = await supabase
-          .from('contacts')
-          .insert({ name, type: 'worker', phone: '' })
-          .select('id')
-          .single()
-        if (contactError) throw contactError
-        contactId = created.id
-      }
-
-      const { error: err } = await supabase.from('staff_members').insert([{
-        contact_id: contactId,
-        designation: formData.designation || null,
-        employment_type: formData.employment_type as EmploymentType,
-        base_salary: parseFloat(formData.base_salary) || 0,
-        daily_wage: parseFloat(formData.daily_wage) || 0,
-        status: 'active',
-      }])
-      if (err) throw err
-      setIsOpen(false)
-      setFormData({ name: '', designation: '', employment_type: 'daily', base_salary: '', daily_wage: '' })
-      fetchStaff()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err))
-    }
+    if (!formData.name.trim()) { setError(language === 'en' ? 'Please enter a name' : 'कृपया नाम दर्ज करें'); return }
+    setError(''); setSaving(true)
+    try { await createStaff(formData); success('Staff added'); setIsOpen(false); setFormData(EMPTY_FORM); refetch() }
+    catch (err) { showError(err instanceof Error ? err.message : String(err)) }
+    setSaving(false)
   }
 
   return (
@@ -146,9 +75,7 @@ export default function StaffPage() {
                 <div>
                   <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Employment Type' : 'नियुक्ति प्रकार'}</label>
                   <select value={formData.employment_type} onChange={(e) => setFormData({...formData, employment_type: e.target.value as EmploymentType})} className="w-full px-3 py-2 border rounded-md">
-                    {EMPLOYMENT_TYPES.map((et) => (
-                      <option key={et} value={et}>{et}</option>
-                    ))}
+                    {EMPLOYMENT_TYPES.map((et) => <option key={et} value={et}>{et}</option>)}
                   </select>
                 </div>
               </div>
@@ -165,7 +92,7 @@ export default function StaffPage() {
               {error && <p className="text-sm text-destructive break-words">{error}</p>}
               <div className="flex gap-2 pt-4">
                 <button type="button" onClick={() => setIsOpen(false)} className="flex-1 rounded-md border py-2 text-sm font-medium hover:bg-muted">{t('common.cancel')}</button>
-                <button type="submit" className="flex-1 rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-700">{t('common.save')}</button>
+                <button type="submit" disabled={saving} className="flex-1 rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-700">{saving ? 'Saving...' : t('common.save')}</button>
               </div>
             </form>
           </div>
@@ -174,19 +101,14 @@ export default function StaffPage() {
 
       <div className="grid gap-6 md:grid-cols-2">
         <Card>
-          <CardHeader><CardTitle>{language === 'en' ? 'Staff Members' : 'कर्मचारी'} ({staff.length})</CardTitle></CardHeader>
+          <CardHeader><CardTitle>{language === 'en' ? 'Staff Members' : 'कर्मचारी'} ({staff?.length ?? 0})</CardTitle></CardHeader>
           <CardContent>
-            {staff.length === 0 ? <p className="text-muted-foreground text-center py-4">No staff added yet</p> : (
+            {(staff ?? []).length === 0 ? <p className="text-muted-foreground text-center py-4">No staff added yet</p> : (
               <div className="space-y-2">
-                {staff.map((s) => (
+                {(staff ?? []).map((s: any) => (
                   <div key={s.id} className="flex justify-between text-sm py-1 border-b last:border-0">
-                    <div>
-                      <span className="font-medium">{s.contact?.name ?? '—'}</span>
-                      <span className="text-muted-foreground ml-2">{s.designation}</span>
-                    </div>
-                    <span className={`px-2 py-0.5 rounded text-xs ${s.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>
-                      {s.status}
-                    </span>
+                    <div><span className="font-medium">{s.contact?.name ?? '—'}</span><span className="text-muted-foreground ml-2">{s.designation}</span></div>
+                    <span className={`px-2 py-0.5 rounded text-xs ${s.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>{s.status}</span>
                   </div>
                 ))}
               </div>
@@ -197,14 +119,11 @@ export default function StaffPage() {
         <Card>
           <CardHeader><CardTitle>{language === 'en' ? 'Recent Payroll' : 'हालिया वेतन'}</CardTitle></CardHeader>
           <CardContent>
-            {payroll.length === 0 ? <p className="text-muted-foreground text-center py-4">No payroll runs yet</p> : (
+            {(payroll ?? []).length === 0 ? <p className="text-muted-foreground text-center py-4">No payroll runs yet</p> : (
               <div className="space-y-2">
-                {payroll.map((p) => (
+                {(payroll ?? []).map((p: any) => (
                   <div key={p.id} className="flex justify-between text-sm py-1 border-b last:border-0">
-                    <div>
-                      <span className="font-medium">{p.payroll_month}</span>
-                      <span className="text-muted-foreground ml-2">{p.period_from} → {p.period_to}</span>
-                    </div>
+                    <div><span className="font-medium">{p.payroll_month}</span><span className="text-muted-foreground ml-2">{p.period_from} → {p.period_to}</span></div>
                     <span className="font-medium">{formatCurrency(p.net_total, language)}</span>
                   </div>
                 ))}

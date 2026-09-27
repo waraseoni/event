@@ -50,6 +50,7 @@ A complete web-based Events Management System built with **Next.js 16**, **Supab
 | [`docs/DATABASE.md`](./docs/DATABASE.md) | Schema inventory, migration 0004, new tables, RPCs, availability algorithm, indexes |
 | [`docs/MODULES.md`](./docs/MODULES.md) | Module-wise spec (M0â€“M9): routes, screens, actions, business rules, AC |
 | [`docs/QUALITY.md`](./docs/QUALITY.md) | Testing pyramid, CI, security checklist, performance, release process |
+| [`docs/TODO.md`](./docs/TODO.md) | **Implementation sequence** — P0–P10 tasks, dependencies, parallelization map |
 
 ## Project Structure
 

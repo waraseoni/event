@@ -4,48 +4,30 @@ import { useState } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { getContactTypeLabel } from '@/lib/utils'
-import { supabase } from '@/lib/supabase'
+import { createClient } from '@/lib/actions/contacts'
+import { useToast } from '@/components/ui/toast'
 import { useLanguage } from '@/contexts/language-context'
 
 export function AddContactButton() {
   const { t, language } = useLanguage()
+  const { success, error: showError } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [formData, setFormData] = useState({
-    name: '',
-    type: 'customer',
-    phone: '',
-    email: '',
-    address: '',
-    company_name: '',
-    gst_number: '',
-    notes: '',
+    name: '', type: 'customer', phone: '', email: '', address: '', company_name: '', gst_number: '', notes: '',
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setLoading(true)
-
     try {
-      const { error } = await (supabase.from('contacts').insert as any)([formData])
-
-      if (error) throw error
-
+      await createClient(formData)
       setIsOpen(false)
-      setFormData({
-        name: '',
-        type: 'customer',
-        phone: '',
-        email: '',
-        address: '',
-        company_name: '',
-        gst_number: '',
-        notes: '',
-      })
-      window.location.reload()
+      setFormData({ name: '', type: 'customer', phone: '', email: '', address: '', company_name: '', gst_number: '', notes: '' })
+      success('Contact added'); window.location.reload()
     } catch (error) {
       console.error('Error adding contact:', error)
-      alert('Error adding contact')
+      showError(error instanceof Error ? error.message : 'Error adding contact')
     } finally {
       setLoading(false)
     }

@@ -1,10 +1,12 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Plus } from 'lucide-react'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/components/ui/toast'
+import { createEvent } from '@/lib/actions/events'
+import { getClients } from '@/lib/actions/contacts'
 import type { Contact, EventStatus } from '@/types'
 
 const EVENT_STATUSES: EventStatus[] = [
@@ -28,29 +30,23 @@ const EMPTY = {
 
 export function AddEventButton() {
   const { t, language } = useLanguage()
+  const { success, error: showError } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState(EMPTY)
   const [customers, setCustomers] = useState<Contact[]>([])
 
-  // customer_id is NOT NULL with an FK to contacts, and the old form asked for
-  // a raw UUID. Nobody can type a valid one, so the dialog could not actually
-  // create an event. Pick from the real customer list instead.
   useEffect(() => {
     if (!isOpen) return
     let active = true
     ;(async () => {
-      const { data } = await supabase
-        .from('contacts')
-        .select('*')
-        .eq('type', 'customer')
-        .order('name')
-      if (active && data) setCustomers(data)
+      try {
+        const data = await getClients()
+        if (active) setCustomers(data.filter((c: any) => c.type === 'customer'))
+      } catch { /* ignore */ }
     })()
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -66,25 +62,23 @@ export function AddEventButton() {
     }
     setLoading(true)
     try {
-      // customer_name and venue are not columns on events. venue_address is.
-      const { error: insertError } = await supabase.from('events').insert({
+      const { error: insertError } = await createEvent({
         name: formData.name,
-        event_type: formData.event_type,
         customer_id: formData.customer_id,
-        event_date: formData.event_date,
+        event_type: formData.event_type,
+        start_datetime: formData.event_date,
         venue_address: formData.venue_address || null,
         status: formData.status,
-        total_amount: parseFloat(formData.total_amount) || 0,
-        notes: formData.notes || null,
       })
       if (insertError) throw insertError
-      setIsOpen(false)
+      success('Event created'); setIsOpen(false)
       setFormData(EMPTY)
       window.location.reload()
     } catch (err) {
       // the old code swallowed this and always said "Error adding event", which
       // hid the real reason (constraint violation, RLS denial, ...)
       setError(err instanceof Error ? err.message : String(err))
+      showError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

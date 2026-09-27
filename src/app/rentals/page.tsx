@@ -1,37 +1,22 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/utils'
+import { useState } from 'react'
+import { useTanStackQuery } from '@/hooks/use-query'
+import { useToast } from '@/components/ui/toast'
 import { useLanguage } from '@/contexts/language-context'
+import { getRentalContracts, createRentalContract } from '@/lib/actions/contacts'
+import { formatCurrency } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Truck, Plus } from 'lucide-react'
 import type { Database } from '@/types/supabase'
 
 type RentalInsert = Database['public']['Tables']['rental_contracts']['Insert']
 type ContractRateType = NonNullable<RentalInsert['rate_type']>
 
-const RATE_TYPES: ContractRateType[] = [
-  'daily',
-  'weekly',
-  'monthly',
-  'per_event',
-  'fixed',
-]
+const RATE_TYPES: ContractRateType[] = ['daily', 'weekly', 'monthly', 'per_event', 'fixed']
 
-const EMPTY_FORM = {
-  direction: 'out' as 'in' | 'out',
-  party_id: '',
-  start_date: '',
-  end_date: '',
-  rate_type: 'daily' as ContractRateType,
-  rate: '',
-  total_amount: '',
-  security_deposit: '',
-  notes: '',
-}
+const EMPTY_FORM = { direction: 'out' as 'in' | 'out', party_id: '', start_date: '', end_date: '', rate_type: 'daily' as ContractRateType, rate: '', total_amount: '', security_deposit: '', notes: '' }
 
-// RC-YYYYMMDD-XXXX. Human-readable and unique enough without a sequence object.
 function nextContractNo(): string {
   const d = new Date()
   const ymd = `${d.getFullYear()}${String(d.getMonth() + 1).padStart(2, '0')}${String(d.getDate()).padStart(2, '0')}`
@@ -41,62 +26,22 @@ function nextContractNo(): string {
 
 export default function RentalsPage() {
   const { t, language } = useLanguage()
-  const [rentals, setRentals] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { success, error: showError } = useToast()
+  const { data: rentals, isLoading, refetch } = useTanStackQuery(['rentals'], () => getRentalContracts())
   const [isOpen, setIsOpen] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState(EMPTY_FORM)
-
-  async function fetchRentals() {
-    try {
-      const { data, error } = await supabase.from('rental_contracts').select('*').order('created_at', { ascending: false })
-      if (error) throw error
-      setRentals(data || [])
-    } catch (error) {
-      console.error('Error fetching rentals:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchRentals()
-  }, [])
+  const [saving, setSaving] = useState(false)
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
-    // party_id is NOT NULL with an FK to contacts; the old code sent `|| null`,
-    // so an empty field produced a constraint violation instead of a message.
-    if (!formData.party_id) {
-      setError(language === 'en' ? 'Please choose a party' : 'कृपया पार्टी चुनें')
-      return
-    }
-    setError('')
+    if (!formData.party_id) { setError(language === 'en' ? 'Please choose a party' : 'कृपया पार्टी चुनें'); return }
+    setError(''); setSaving(true)
     try {
-      const { error: err } = await supabase.from('rental_contracts').insert([{
-        direction: formData.direction,
-        party_id: formData.party_id,
-        start_date: formData.start_date,
-        end_date: formData.end_date,
-        rate_type: formData.rate_type,
-        rate: parseFloat(formData.rate) || 0,
-        total_amount: parseFloat(formData.total_amount) || 0,
-        security_deposit: parseFloat(formData.security_deposit) || 0,
-        // contract_no is NOT NULL with no default, so the form has to mint one.
-        // The list used to render `r.contract_no || r.id`, which is why every
-        // row showed a raw UUID.
-        contract_no: nextContractNo(),
-        contract_date: new Date().toISOString().split('T')[0],
-        status: 'requested',
-        notes: formData.notes || null,
-      }])
-      if (err) throw err
-      setIsOpen(false)
-      setFormData({ direction: 'out', party_id: '', start_date: '', end_date: '', rate_type: 'daily', rate: '', total_amount: '', security_deposit: '', notes: '' })
-      fetchRentals()
-    } catch {
-      alert('Error adding rental')
-    }
+      await createRentalContract({ ...formData, contract_no: nextContractNo(), contract_date: new Date().toISOString().split('T')[0], status: 'requested' })
+      success('Contract created'); setIsOpen(false); setFormData(EMPTY_FORM); refetch()
+    } catch (err) { showError(err instanceof Error ? err.message : String(err)) }
+    setSaving(false)
   }
 
   return (
@@ -137,26 +82,24 @@ export default function RentalsPage() {
                 </select>
               </div>
               <div>
-                <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Party/Client ID' : 'पार्टी/ग्राहक ID'}</label>
-                <input type="text" value={formData.party_id} onChange={(e) => setFormData({...formData, party_id: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
+                <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Party ID' : 'पार्टी ID'}</label>
+                <input required type="text" value={formData.party_id} onChange={(e) => setFormData({...formData, party_id: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Start Date' : 'प्रारंभ तिथि'}</label>
-                  <input type="date" required value={formData.start_date} onChange={(e) => setFormData({...formData, start_date: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
+                  <input required type="date" value={formData.start_date} onChange={(e) => setFormData({...formData, start_date: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">{language === 'en' ? 'End Date' : 'समाप्ति तिथि'}</label>
-                  <input type="date" required value={formData.end_date} onChange={(e) => setFormData({...formData, end_date: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
+                  <input required type="date" value={formData.end_date} onChange={(e) => setFormData({...formData, end_date: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
                 </div>
               </div>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Rate Type' : 'दर प्रकार'}</label>
                   <select value={formData.rate_type} onChange={(e) => setFormData({...formData, rate_type: e.target.value as ContractRateType})} className="w-full px-3 py-2 border rounded-md">
-                    {RATE_TYPES.map((rt) => (
-                      <option key={rt} value={rt}>{rt.replace('_', ' ')}</option>
-                    ))}
+                    {RATE_TYPES.map((rt) => <option key={rt} value={rt}>{rt.replace('_', ' ')}</option>)}
                   </select>
                 </div>
                 <div>
@@ -177,7 +120,7 @@ export default function RentalsPage() {
               {error && <p className="text-sm text-destructive break-words">{error}</p>}
               <div className="flex gap-2 pt-4">
                 <button type="button" onClick={() => setIsOpen(false)} className="flex-1 rounded-md border py-2 text-sm font-medium hover:bg-muted">{t('common.cancel')}</button>
-                <button type="submit" className="flex-1 rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-700">{t('common.save')}</button>
+                <button type="submit" disabled={saving} className="flex-1 rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-700">{saving ? 'Saving...' : t('common.save')}</button>
               </div>
             </form>
           </div>
@@ -186,11 +129,11 @@ export default function RentalsPage() {
 
       <Card>
         <CardContent className="p-6">
-          {loading ? (
+          {isLoading ? (
             <div className="h-32 bg-muted rounded animate-pulse" />
           ) : (
             <div className="space-y-4">
-              {rentals.map((r) => (
+              {(rentals ?? []).map((r: any) => (
                 <div key={r.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="font-semibold">{r.contract_no || r.id}</p>
@@ -198,12 +141,10 @@ export default function RentalsPage() {
                       {r.direction === 'out' ? '→ Out' : '← In'} · {r.start_date} to {r.end_date} · {formatCurrency(r.total_amount, language)}
                     </p>
                   </div>
-                  <span className={`px-2 py-1 rounded text-xs font-medium ${r.direction === 'out' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>
-                    {r.status}
-                  </span>
+                  <span className={`px-2 py-1 rounded text-xs font-medium ${r.direction === 'out' ? 'bg-blue-100 text-blue-800' : 'bg-green-100 text-green-800'}`}>{r.status}</span>
                 </div>
               ))}
-              {rentals.length === 0 && <p className="text-muted-foreground text-center py-8">No rental contracts yet</p>}
+              {(rentals ?? []).length === 0 && <p className="text-muted-foreground text-center py-8">No rental contracts yet</p>}
             </div>
           )}
         </CardContent>

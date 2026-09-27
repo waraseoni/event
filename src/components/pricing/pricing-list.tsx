@@ -2,53 +2,29 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
+import { useTanStackQuery } from '@/hooks/use-query'
+import { getPricing, deletePricing } from '@/lib/actions/events'
 import { Edit, Trash2, Package } from 'lucide-react'
 
 export function PricingList() {
   const { t, language } = useLanguage()
-  const [rates, setRates] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  async function fetchRates() {
-    try {
-      const { data, error } = await supabase
-        .from('pricing_rates')
-        .select('*')
-        .order('created_at', { ascending: false })
-      if (error) throw error
-      setRates(data || [])
-    } catch (error) {
-      console.error('Error fetching pricing:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchRates()
-  }, [])
+  const { data: rates, isLoading, refetch } = useTanStackQuery(['pricing-list'], () => getPricing())
 
   const handleDelete = async (id: string) => {
     if (!confirm('Delete this rate?')) return
-    try {
-      const { error } = await supabase.from('pricing_rates').delete().eq('id', id)
-      if (error) throw error
-      fetchRates()
-    } catch (error) {
-      console.error('Error deleting:', error)
-    }
+    try { await deletePricing(id); refetch() }
+    catch (error) { console.error('Error deleting:', error) }
   }
 
-  if (loading) {
+  if (isLoading) {
     return <div className="space-y-4">{[...Array(3)].map((_, i) => <Card key={i}><CardContent className="p-6"><div className="h-12 bg-muted rounded animate-pulse" /></CardContent></Card>)}</div>
   }
 
   return (
     <div className="space-y-4">
-      {rates.map((rate) => (
+      {(rates ?? []).map((rate: any) => (
         <Card key={rate.id}>
           <CardContent className="p-4">
             <div className="flex items-center justify-between">
@@ -75,7 +51,7 @@ export function PricingList() {
           </CardContent>
         </Card>
       ))}
-      {rates.length === 0 && (
+      {(rates ?? []).length === 0 && (
         <Card><CardContent className="p-6 text-center"><p className="text-muted-foreground">No pricing rates configured yet</p></CardContent></Card>
       )}
     </div>

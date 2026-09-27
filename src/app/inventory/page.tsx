@@ -1,12 +1,13 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { supabase } from '@/lib/supabase'
+import { useState } from 'react'
+import { useTanStackQuery } from '@/hooks/use-query'
+import { useToast } from '@/components/ui/toast'
+import { useLanguage } from '@/contexts/language-context'
+import { getInventoryItems, createInventoryItem, updateInventoryItem, deleteInventoryItem } from '@/lib/actions/inventory'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { useToast } from '@/components/ui/toast'
-import { useLanguage } from '@/contexts/language-context'
 import { useSystemSettings } from '@/contexts/system-settings-context'
 import type { InventoryItem } from '@/types'
 import type { Database } from '@/types/supabase'
@@ -17,36 +18,40 @@ export function InventoryPage() {
   const { t } = useLanguage()
   const { settings } = useSystemSettings()
   const { success, error: showError } = useToast()
-  const [items, setItems] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { data: items, isLoading, refetch } = useTanStackQuery<InventoryItem[]>(['inventory'], () => getInventoryItems())
   const [search, setSearch] = useState('')
   const [showForm, setShowForm] = useState(false)
-  const [editing, setEditing] = useState<any>(null)
+  const [editing, setEditing] = useState<InventoryItem | null>(null)
+  const [saving, setSaving] = useState(false)
 
-  useEffect(() => {
-    fetchItems()
-  }, [])
-
-  async function fetchItems() {
-    setLoading(true)
-    const { data } = await supabase.from('inventory_items').select('*').order('created_at', { ascending: false })
-    setItems(data ?? [])
-    setLoading(false)
-  }
-
-  async function handleDelete(id: string) {
-    if (!confirm('Delete?')) return
-    const { error } = await supabase.from('inventory_items').delete().eq('id', id)
-    if (error) { showError(error.message); return }
-    success('Deleted')
-    fetchItems()
-  }
-
-  const filtered = items.filter(i =>
+  const filtered = (items ?? []).filter((i: InventoryItem) =>
     (i.name ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (i.company ?? '').toLowerCase().includes(search.toLowerCase()) ||
     (i.unique_code ?? '').toLowerCase().includes(search.toLowerCase())
   )
+
+  async function handleCreate() {
+    setSaving(true)
+    try {
+      await createInventoryItem({ name: '', category: '', total_quantity: 1 })
+      success('Created'); refetch(); setShowForm(false)
+    } catch (err) { showError(err instanceof Error ? err.message : String(err)) }
+    setSaving(false)
+  }
+
+  async function handleUpdate() {
+    setSaving(true)
+    try {
+      await updateInventoryItem(editing!.id, {})
+      success('Updated'); refetch(); setEditing(null); setShowForm(false)
+    } catch (err) { showError(err instanceof Error ? err.message : String(err)) }
+    setSaving(false)
+  }
+
+  async function handleDelete(id: string) {
+    try { await deleteInventoryItem(id); success('Deleted'); refetch() }
+    catch (err) { showError(err instanceof Error ? err.message : String(err)) }
+  }
 
   return (
     <div className="space-y-6">
@@ -66,11 +71,11 @@ export function InventoryPage() {
         <Badge variant="info">{filtered.length} items</Badge>
       </div>
 
-      {loading ? (
+      {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">{[...Array(4)].map((_, i) => <div key={i} className="h-24 rounded-xl bg-slate-100 dark:bg-slate-800 animate-pulse" />)}</div>
       ) : (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-          {filtered.map(item => (
+          {filtered.map((item: InventoryItem) => (
             <div key={item.id} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-[#000000] p-5">
               <div className="flex items-start justify-between">
                 <div>
@@ -91,7 +96,7 @@ export function InventoryPage() {
               </div>
               <div className="mt-3 flex gap-2">
                 <Button variant="outline" size="sm" onClick={() => { setEditing(item); setShowForm(true) }}>Edit</Button>
-                <Button variant="destructive" size="sm" onClick={() => handleDelete(item.id)}>Delete</Button>
+                <Button variant="destructive" size="sm" onClick={() => { if (confirm('Delete?')) handleDelete(item.id) }}>Delete</Button>
               </div>
             </div>
           ))}
@@ -99,70 +104,35 @@ export function InventoryPage() {
       )}
 
       {showForm && (
-        <InventoryForm item={editing} onClose={() => { setShowForm(false); setEditing(null); fetchItems() }} />
+        <InventoryForm item={editing} onClose={() => { setShowForm(false); setEditing(null); refetch() }} saving={saving} />
       )}
     </div>
   )
 }
 
-function InventoryForm({ item, onClose }: { item: InventoryItem | null; onClose: () => void }) {
+function InventoryForm({ item, onClose, saving }: { item: InventoryItem | null; onClose: () => void; saving: boolean }) {
   const { t } = useLanguage()
   const { success, error } = useToast()
   const [form, setForm] = useState({
-    name: item?.name ?? '',
-    // category is NOT NULL with no default, so an insert without it is rejected
-    category: item?.category ?? '',
-    description: item?.description ?? '',
-    company: item?.company ?? '',
-    model: item?.model ?? '',
-    scope: item?.scope ?? '',
+    name: item?.name ?? '', category: item?.category ?? '', description: item?.description ?? '',
+    company: item?.company ?? '', model: item?.model ?? '', scope: item?.scope ?? '',
     item_type: (item?.item_type ?? 'owned') as NonNullable<InventoryItem['item_type']>,
     target_event_types: (item?.target_event_types ?? []).join(', '),
     estimated_rent_price: String(item?.estimated_rent_price ?? ''),
     min_price: String(item?.min_price ?? ''),
     security_deposit: String(item?.security_deposit ?? ''),
-    total_quantity: String(item?.total_quantity ?? 1),
-    unit: item?.unit ?? 'piece',
+    total_quantity: String(item?.total_quantity ?? 1), unit: item?.unit ?? 'piece',
     condition: (item?.condition ?? 'good') as NonNullable<InventoryItem['condition']>,
   })
-  const [saving, setSaving] = useState(false)
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
-    setSaving(true)
     try {
-      // unique_code is supplied per-branch below, so it is left out of the
-      // shared payload: the update keeps the existing code, a new item gets one.
-      const payload: Omit<InventoryInsert, 'unique_code'> = {
-        name: form.name,
-        category: form.category,
-        description: form.description || null,
-        company: form.company || null,
-        model: form.model || null,
-        scope: form.scope || null,
-        item_type: form.item_type,
-        target_event_types: form.target_event_types.split(',').map((s) => s.trim()).filter(Boolean),
-        estimated_rent_price: Number(form.estimated_rent_price) || 0,
-        min_price: Number(form.min_price) || 0,
-        security_deposit: Number(form.security_deposit) || 0,
-        total_quantity: Number(form.total_quantity),
-        unit: form.unit,
-        condition: form.condition,
-      }
-      if (item?.id) {
-        const { error: err } = await supabase.from('inventory_items').update(payload).eq('id', item.id)
-        if (err) throw err
-        success('Updated')
-      } else {
-        const { error: err } = await supabase
-          .from('inventory_items')
-          .insert({ ...payload, status: 'available', unique_code: 'ITEM-' + Date.now() })
-        if (err) throw err
-        success('Created')
-      }
+      const payload = { name: form.name, category: form.category, description: form.description || null, company: form.company || null, model: form.model || null, scope: form.scope || null, item_type: form.item_type, target_event_types: form.target_event_types.split(',').map((s) => s.trim()).filter(Boolean), estimated_rent_price: Number(form.estimated_rent_price) || 0, min_price: Number(form.min_price) || 0, security_deposit: Number(form.security_deposit) || 0, total_quantity: Number(form.total_quantity), unit: form.unit, condition: form.condition }
+      if (item?.id) { await updateInventoryItem(item.id, payload); success('Updated') }
+      else { await createInventoryItem({ ...payload, unique_code: 'INV-' + Date.now().toString(36).toUpperCase() }); success('Created') }
       onClose()
     } catch (err) { error(err instanceof Error ? err.message : String(err)) }
-    setSaving(false)
   }
 
   return (
@@ -173,30 +143,20 @@ function InventoryForm({ item, onClose }: { item: InventoryItem | null; onClose:
           <button type="button" onClick={onClose} className="rounded p-1 hover:bg-slate-100 dark:hover:bg-slate-800">✕</button>
         </div>
         {[
-          { label: 'Name', key: 'name', required: true },
-          // inventory_items has no `notes` column; description is the real one
-          { label: 'Category', key: 'category', required: true },
-          { label: 'Description', key: 'description', textarea: true },
-          { label: 'Company', key: 'company' },
-          { label: 'Model', key: 'model' },
-          { label: 'Scope', key: 'scope' },
-          { label: 'Item Type', key: 'item_type', as: 'select', opts: ['owned', 'leased'] },
+          { label: 'Name', key: 'name', required: true }, { label: 'Category', key: 'category', required: true }, { label: 'Description', key: 'description', textarea: true },
+          { label: 'Company', key: 'company' }, { label: 'Model', key: 'model' }, { label: 'Scope', key: 'scope' },
+          { label: 'Item Type', key: 'item_type', as: 'select', opts: ['owned', 'leased'] as const },
           { label: 'Target Event Types (comma sep)', key: 'target_event_types' },
-          { label: 'Estimated Rent Price', key: 'estimated_rent_price', as: 'number' },
-          { label: 'Min Price', key: 'min_price', as: 'number' },
-          { label: 'Security Deposit', key: 'security_deposit', as: 'number' },
-          { label: 'Total Quantity', key: 'total_quantity', as: 'number' },
-          { label: 'Unit', key: 'unit' },
-          { label: 'Condition', key: 'condition', as: 'select', opts: ['excellent', 'good', 'fair', 'poor'] },
+          { label: 'Estimated Rent Price', key: 'estimated_rent_price', as: 'number' as const },
+          { label: 'Min Price', key: 'min_price', as: 'number' as const },
+          { label: 'Security Deposit', key: 'security_deposit', as: 'number' as const },
+          { label: 'Total Quantity', key: 'total_quantity', as: 'number' as const }, { label: 'Unit', key: 'unit' },
+          { label: 'Condition', key: 'condition', as: 'select' as const, opts: ['excellent', 'good', 'fair', 'poor'] as const },
         ].map(f => (
           <div key={f.key} className="space-y-1">
-            <label className="block text-sm font-medium">
-              {f.label}{f.required ? ' *' : ''}
-            </label>
+            <label className="block text-sm font-medium">{f.label}{f.required ? ' *' : ''}</label>
             {f.as === 'select' ? (
-              <select value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm">
-                {f.opts!.map(o => <option key={o} value={o}>{o}</option>)}
-              </select>
+              <select value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm">{f.opts!.map(o => <option key={o} value={o}>{o}</option>)}</select>
             ) : f.textarea ? (
               <textarea value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm" rows={2} />
             ) : (

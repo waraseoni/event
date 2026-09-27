@@ -1,53 +1,27 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/utils'
+import { useState } from 'react'
+import { useTanStackQuery } from '@/hooks/use-query'
+import { useToast } from '@/components/ui/toast'
 import { useLanguage } from '@/contexts/language-context'
+import { getClients, createClient } from '@/lib/actions/contacts'
+import { formatCurrency } from '@/lib/utils'
+import { Card, CardContent } from '@/components/ui/card'
 import { Users, UserPlus } from 'lucide-react'
 
 export default function ClientsPage() {
   const { t, language } = useLanguage()
-  const [clients, setClients] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
+  const { success, error: showError } = useToast()
+  const { data: clients, isLoading, refetch } = useTanStackQuery(['clients'], () => getClients())
   const [isOpen, setIsOpen] = useState(false)
   const [formData, setFormData] = useState({ name: '', type: 'customer' as const, phone: '', email: '', company_name: '', credit_days: '' })
-
-  async function fetchClients() {
-    try {
-      const { data, error } = await supabase.from('contacts').select('*').in('type', ['renter', 'customer']).order('name')
-      if (error) throw error
-      setClients(data || [])
-    } catch (error) {
-      console.error('Error fetching clients:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchClients()
-  }, [])
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
     try {
-      const { error } = await supabase.from('contacts').insert([{
-        name: formData.name,
-        type: formData.type,
-        phone: formData.phone,
-        email: formData.email || null,
-        company_name: formData.company_name || null,
-        credit_days: formData.credit_days ? parseInt(formData.credit_days) : 0,
-      }])
-      if (error) throw error
-      setIsOpen(false)
-      setFormData({ name: '', type: 'customer', phone: '', email: '', company_name: '', credit_days: '' })
-      fetchClients()
-    } catch {
-      alert('Error adding client')
-    }
+      await createClient(formData)
+      success('Client added'); setIsOpen(false); setFormData({ name: '', type: 'customer', phone: '', email: '', company_name: '', credit_days: '' }); refetch()
+    } catch (err) { showError(err instanceof Error ? err.message : String(err)) }
   }
 
   return (
@@ -122,11 +96,11 @@ export default function ClientsPage() {
 
       <Card>
         <CardContent className="p-6">
-          {loading ? (
+          {isLoading ? (
             <div className="h-32 bg-muted rounded animate-pulse" />
           ) : (
             <div className="space-y-4">
-              {clients.map((c) => (
+              {(clients ?? []).map((c) => (
                 <div key={c.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="font-semibold">{c.name}</p>
@@ -137,7 +111,7 @@ export default function ClientsPage() {
                   </span>
                 </div>
               ))}
-              {clients.length === 0 && <p className="text-muted-foreground text-center py-8">No clients yet</p>}
+              {(clients ?? []).length === 0 && <p className="text-muted-foreground text-center py-8">No clients yet</p>}
             </div>
           )}
         </CardContent>

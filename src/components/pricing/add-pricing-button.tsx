@@ -3,8 +3,10 @@
 import { useState, useEffect } from 'react'
 import { Plus } from 'lucide-react'
 import { Button } from '@/components/ui/button'
-import { supabase } from '@/lib/supabase'
 import { useLanguage } from '@/contexts/language-context'
+import { useToast } from '@/components/ui/toast'
+import { createPricing } from '@/lib/actions/events'
+import { getInventoryItems } from '@/lib/actions/inventory'
 import type { InventoryItem, RentalType } from '@/types'
 
 const RENTAL_TYPES: RentalType[] = ['daily', 'weekly', 'monthly', 'per_event']
@@ -20,27 +22,20 @@ const EMPTY = {
 
 export function AddPricingButton() {
   const { t, language } = useLanguage()
+  const { success, error: showError } = useToast()
   const [isOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [formData, setFormData] = useState(EMPTY)
   const [items, setItems] = useState<InventoryItem[]>([])
 
-  // inventory_item_id is NOT NULL with an FK to inventory_items. The old form
-  // asked for a raw UUID, so a rate could only be added by guessing one.
   useEffect(() => {
     if (!isOpen) return
     let active = true
     ;(async () => {
-      const { data } = await supabase
-        .from('inventory_items')
-        .select('*')
-        .order('name')
-      if (active && data) setItems(data)
+      try { const data = await getInventoryItems(); if (active) setItems(data.filter((i: any) => i.status === 'available')) } catch { /* ignore */ }
     })()
-    return () => {
-      active = false
-    }
+    return () => { active = false }
   }, [isOpen])
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -52,7 +47,7 @@ export function AddPricingButton() {
     }
     setLoading(true)
     try {
-      const { error: insertError } = await supabase.from('pricing_rates').insert({
+      await createPricing({
         inventory_item_id: formData.inventory_item_id,
         rental_type: formData.rental_type,
         rate: parseFloat(formData.rate) || 0,
@@ -60,12 +55,10 @@ export function AddPricingButton() {
         min_rental_days: formData.min_rental_days ? parseInt(formData.min_rental_days) : null,
         max_rental_days: formData.max_rental_days ? parseInt(formData.max_rental_days) : null,
       })
-      if (insertError) throw insertError
-      setIsOpen(false)
-      setFormData(EMPTY)
-      window.location.reload()
+      success('Pricing added'); setIsOpen(false); setFormData(EMPTY); window.location.reload()
     } catch (err) {
       setError(err instanceof Error ? err.message : String(err))
+      showError(err instanceof Error ? err.message : String(err))
     } finally {
       setLoading(false)
     }

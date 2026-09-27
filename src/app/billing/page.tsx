@@ -1,32 +1,16 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { supabase } from '@/lib/supabase'
-import { formatCurrency } from '@/lib/utils'
+import { useState } from 'react'
+import { useTanStackQuery } from '@/hooks/use-query'
 import { useLanguage } from '@/contexts/language-context'
-import { Receipt, Plus } from 'lucide-react'
+import { getInvoices } from '@/lib/actions/contacts'
+import { formatCurrency } from '@/lib/utils'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Receipt } from 'lucide-react'
 
 export default function BillingPage() {
   const { t, language } = useLanguage()
-  const [invoices, setInvoices] = useState<any[]>([])
-  const [loading, setLoading] = useState(true)
-
-  async function fetchInvoices() {
-    try {
-      const { data, error } = await supabase.from('invoices').select('*').order('issue_date', { ascending: false })
-      if (error) throw error
-      setInvoices(data || [])
-    } catch (error) {
-      console.error('Error fetching invoices:', error)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  useEffect(() => {
-    fetchInvoices()
-  }, [])
+  const { data: invoices, isLoading } = useTanStackQuery(['invoices'], () => getInvoices())
 
   return (
     <div className="space-y-6">
@@ -51,25 +35,25 @@ export default function BillingPage() {
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">{language === 'en' ? 'Total Invoices' : 'कुल चलान'}</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{invoices.length}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold">{(invoices ?? []).length}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">{language === 'en' ? 'Total Amount' : 'कुल राशि'}</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold">{formatCurrency(invoices.reduce((s: number, i: any) => s + (Number(i.grand_total) || 0), 0), language)}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold">{formatCurrency((invoices ?? []).reduce((s: number, i: any) => s + (Number(i.grand_total) || 0), 0), language)}</div></CardContent>
         </Card>
         <Card>
           <CardHeader className="pb-2"><CardTitle className="text-sm">{language === 'en' ? 'Amount Due' : 'बकाया'}</CardTitle></CardHeader>
-          <CardContent><div className="text-2xl font-bold text-orange-600">{formatCurrency(invoices.reduce((s: number, i: any) => s + (Number(i.amount_due) || 0), 0), language)}</div></CardContent>
+          <CardContent><div className="text-2xl font-bold text-orange-600">{formatCurrency((invoices ?? []).reduce((s: number, i: any) => s + (Number(i.amount_due) || 0), 0), language)}</div></CardContent>
         </Card>
       </div>
 
       <Card>
         <CardContent className="p-6">
-          {loading ? (
+          {isLoading ? (
             <div className="h-32 bg-muted rounded animate-pulse" />
           ) : (
             <div className="space-y-4">
-              {invoices.map((inv) => (
+              {(invoices ?? []).map((inv: any) => (
                 <div key={inv.id} className="flex items-center justify-between py-2 border-b last:border-0">
                   <div>
                     <p className="font-semibold">{inv.invoice_no}</p>
@@ -87,7 +71,7 @@ export default function BillingPage() {
                   </span>
                 </div>
               ))}
-              {invoices.length === 0 && <p className="text-muted-foreground text-center py-8">No invoices yet</p>}
+              {(invoices ?? []).length === 0 && <p className="text-muted-foreground text-center py-8">No invoices yet</p>}
             </div>
           )}
         </CardContent>
