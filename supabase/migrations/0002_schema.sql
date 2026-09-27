@@ -525,13 +525,14 @@ DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schem
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attendance') THEN CREATE INDEX IF NOT EXISTS idx_attendance_staff_date ON attendance(staff_id, date); END IF; END $$;
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_runs') THEN CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month); END IF; END $$;
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id); CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id); CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'audit_log') THEN CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id); END IF; END $$;
 
 -- ================================================================
 -- (D) updated_at triggers for new tables
 -- ================================================================
+-- NOTE: stock_movements, notifications and audit_log are append-only logs
+-- with no updated_at column, so they intentionally have no updated_at
+-- trigger (the trigger body assigns NEW.updated_at and would fail at
+-- runtime on those tables).
 CREATE OR REPLACE FUNCTION update_updated_at_column()
 RETURNS TRIGGER AS $$
 BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
@@ -565,6 +566,3 @@ DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schem
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN DROP TRIGGER IF EXISTS update_invoices_updated_at ON invoices; CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoice_items') THEN DROP TRIGGER IF EXISTS update_invoice_items_updated_at ON invoice_items; CREATE TRIGGER update_invoice_items_updated_at BEFORE UPDATE ON invoice_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
 DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'expenses') THEN DROP TRIGGER IF EXISTS update_expenses_updated_at ON expenses; CREATE TRIGGER update_expenses_updated_at BEFORE UPDATE ON expenses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN DROP TRIGGER IF EXISTS update_stock_movements_updated_at ON stock_movements; CREATE TRIGGER update_stock_movements_updated_at BEFORE UPDATE ON stock_movements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN DROP TRIGGER IF EXISTS update_notifications_updated_at ON notifications; CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'audit_log') THEN DROP TRIGGER IF EXISTS update_audit_log_updated_at ON audit_log; CREATE TRIGGER update_audit_log_updated_at BEFORE UPDATE ON audit_log FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;

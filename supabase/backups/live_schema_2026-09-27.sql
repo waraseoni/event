@@ -26,6 +26,14 @@
 --
 -- The absence of `public.profiles` is the direct cause of the
 -- "relation \"profiles\" does not exist" failure in 0003_rls.sql.
+--
+-- KNOWN DEFECT IN THIS SUPABASE EXPORT (corrected in this file):
+--   public.pricing_rates.applicable_days was dumped as a bare `ARRAY` with no
+--   element type -> `applicable_days ARRAY DEFAULT ARRAY[0,1,2,3,4,5,6]`
+--   which is a 42601 syntax error. The real column is `integer[]`
+--   (src/types/index.ts declares it as number[]). The type has been filled in
+--   below so this reference copy is copy-pasteable; everything else is
+--   verbatim as exported.
 -- =============================================================================
 
 -- WARNING: This schema is for context only and is not meant to be run.
@@ -72,7 +80,7 @@ CREATE TABLE public.pricing_rates (
   max_rental_days integer,
   id uuid NOT NULL DEFAULT uuid_generate_v4(),
   min_rental_days integer DEFAULT 1,
-  applicable_days ARRAY DEFAULT ARRAY[0, 1, 2, 3, 4, 5, 6],
+  applicable_days integer[] DEFAULT ARRAY[0, 1, 2, 3, 4, 5, 6],
   created_at timestamp with time zone DEFAULT now(),
   updated_at timestamp with time zone DEFAULT now(),
   CONSTRAINT pricing_rates_pkey PRIMARY KEY (id),

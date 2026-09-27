@@ -17,7 +17,8 @@ $$ LANGUAGE SQL STABLE SECURITY DEFINER;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles') THEN
     ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON profiles;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.profiles', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'profiles'), 'SELECT 1');
     CREATE POLICY "Owner+ manager can view all" ON profiles FOR SELECT USING (public.current_user_role() IN ('owner', 'manager'));
     CREATE POLICY "Users can view own" ON profiles FOR SELECT USING (auth.uid() = user_id);
     CREATE POLICY "Owner+ manager upsert" ON profiles FOR INSERT WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
@@ -30,7 +31,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_categories') THEN
     ALTER TABLE item_categories ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON item_categories;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.item_categories', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'item_categories'), 'SELECT 1');
     CREATE POLICY "Staff+ read categories" ON item_categories FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage categories" ON item_categories FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -39,7 +41,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_locations') THEN
     ALTER TABLE item_locations ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON item_locations;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.item_locations', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'item_locations'), 'SELECT 1');
     CREATE POLICY "Staff+ read locations" ON item_locations FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage locations" ON item_locations FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -48,7 +51,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'contacts') THEN
     ALTER TABLE contacts ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON contacts;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.contacts', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'contacts'), 'SELECT 1');
     CREATE POLICY "Staff+ read contacts" ON contacts FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage contacts" ON contacts FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -57,7 +61,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'staff_members') THEN
     ALTER TABLE staff_members ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON staff_members;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.staff_members', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'staff_members'), 'SELECT 1');
     CREATE POLICY "Staff+ read staff" ON staff_members FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage staff" ON staff_members FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -66,7 +71,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'inventory_items') THEN
     ALTER TABLE inventory_items ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON inventory_items;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.inventory_items', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'inventory_items'), 'SELECT 1');
     CREATE POLICY "Staff+ read inventory" ON inventory_items FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage inventory" ON inventory_items FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -75,7 +81,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'pricing_rates') THEN
     ALTER TABLE pricing_rates ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON pricing_rates;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.pricing_rates', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'pricing_rates'), 'SELECT 1');
     CREATE POLICY "Staff+ read pricing" ON pricing_rates FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage pricing" ON pricing_rates FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -84,7 +91,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quotes') THEN
     ALTER TABLE quotes ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON quotes;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.quotes', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'quotes'), 'SELECT 1');
     CREATE POLICY "Staff+ read quotes" ON quotes FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage quotes" ON quotes FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -93,7 +101,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quote_items') THEN
     ALTER TABLE quote_items ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON quote_items;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.quote_items', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'quote_items'), 'SELECT 1');
     CREATE POLICY "Staff+ read quote items" ON quote_items FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage quote items" ON quote_items FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -102,7 +111,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN
     ALTER TABLE events ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON events;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.events', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'events'), 'SELECT 1');
     CREATE POLICY "Staff+ read events" ON events FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage events" ON events FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -111,7 +121,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_items') THEN
     ALTER TABLE event_items ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON event_items;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.event_items', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'event_items'), 'SELECT 1');
     CREATE POLICY "Staff+ read event items" ON event_items FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage event items" ON event_items FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -120,6 +131,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_staff') THEN
     ALTER TABLE event_staff ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.event_staff', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'event_staff'), 'SELECT 1');
     CREATE POLICY "Staff+ read" ON event_staff FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage" ON event_staff FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -128,6 +141,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_tasks') THEN
     ALTER TABLE event_tasks ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.event_tasks', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'event_tasks'), 'SELECT 1');
     CREATE POLICY "Staff+ read tasks" ON event_tasks FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage tasks" ON event_tasks FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -136,6 +151,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_expenses') THEN
     ALTER TABLE event_expenses ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.event_expenses', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'event_expenses'), 'SELECT 1');
     CREATE POLICY "Staff+ read expenses" ON event_expenses FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage expenses" ON event_expenses FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -144,6 +161,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'rental_contracts') THEN
     ALTER TABLE rental_contracts ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.rental_contracts', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'rental_contracts'), 'SELECT 1');
     CREATE POLICY "Staff+ read rentals" ON rental_contracts FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage rentals" ON rental_contracts FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -152,6 +171,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'rental_contract_items') THEN
     ALTER TABLE rental_contract_items ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.rental_contract_items', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'rental_contract_items'), 'SELECT 1');
     CREATE POLICY "Staff+ read" ON rental_contract_items FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage" ON rental_contract_items FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -160,6 +181,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attendance') THEN
     ALTER TABLE attendance ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.attendance', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'attendance'), 'SELECT 1');
     CREATE POLICY "Manager+ accountant read attendance" ON attendance FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant'));
     CREATE POLICY "Manager+ accountant manage attendance" ON attendance FOR ALL USING (public.current_user_role() IN ('owner', 'manager', 'accountant')) WITH CHECK (public.current_user_role() IN ('owner', 'manager', 'accountant'));
   END IF;
@@ -168,6 +191,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'staff_advances') THEN
     ALTER TABLE staff_advances ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.staff_advances', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'staff_advances'), 'SELECT 1');
     CREATE POLICY "Staff+ read advances" ON staff_advances FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage advances" ON staff_advances FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -176,6 +201,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'commission_rules') THEN
     ALTER TABLE commission_rules ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.commission_rules', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'commission_rules'), 'SELECT 1');
     CREATE POLICY "Staff+ read commission" ON commission_rules FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage commission" ON commission_rules FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -184,6 +211,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bonuses') THEN
     ALTER TABLE bonuses ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.bonuses', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'bonuses'), 'SELECT 1');
     CREATE POLICY "Staff+ read bonuses" ON bonuses FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage bonuses" ON bonuses FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -192,6 +221,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_runs') THEN
     ALTER TABLE payroll_runs ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.payroll_runs', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'payroll_runs'), 'SELECT 1');
     CREATE POLICY "Owner+ accountant read payroll" ON payroll_runs FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant'));
     CREATE POLICY "Owner+ accountant manage payroll" ON payroll_runs FOR ALL USING (public.current_user_role() IN ('owner', 'manager', 'accountant')) WITH CHECK (public.current_user_role() IN ('owner', 'manager', 'accountant'));
   END IF;
@@ -200,6 +231,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_entries') THEN
     ALTER TABLE payroll_entries ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.payroll_entries', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'payroll_entries'), 'SELECT 1');
     CREATE POLICY "Owner+ accountant read entries" ON payroll_entries FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant'));
     CREATE POLICY "Owner+ accountant manage entries" ON payroll_entries FOR ALL USING (public.current_user_role() IN ('owner', 'manager', 'accountant')) WITH CHECK (public.current_user_role() IN ('owner', 'manager', 'accountant'));
   END IF;
@@ -208,6 +241,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN
     ALTER TABLE invoices ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.invoices', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'invoices'), 'SELECT 1');
     CREATE POLICY "Staff+ read invoices" ON invoices FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage invoices" ON invoices FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -216,6 +251,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'expenses') THEN
     ALTER TABLE expenses ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.expenses', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'expenses'), 'SELECT 1');
     CREATE POLICY "Staff+ read expenses" ON expenses FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage expenses" ON expenses FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -224,6 +261,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN
     ALTER TABLE stock_movements ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.stock_movements', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'stock_movements'), 'SELECT 1');
     CREATE POLICY "Staff+ read movements" ON stock_movements FOR SELECT USING (public.current_user_role() IN ('owner', 'manager', 'accountant', 'staff'));
     CREATE POLICY "Owner+ manage movements" ON stock_movements FOR ALL USING (public.current_user_role() IN ('owner', 'manager')) WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -232,6 +271,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN
     ALTER TABLE notifications ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.notifications', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'notifications'), 'SELECT 1');
     CREATE POLICY "Users read own notifications" ON notifications FOR SELECT USING (auth.uid() = user_id);
     CREATE POLICY "Users update own" ON notifications FOR UPDATE USING (auth.uid() = user_id);
   END IF;
@@ -240,6 +281,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'audit_log') THEN
     ALTER TABLE audit_log ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.audit_log', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'audit_log'), 'SELECT 1');
     CREATE POLICY "Owner+ manager read audit" ON audit_log FOR SELECT USING (public.current_user_role() IN ('owner', 'manager'));
     CREATE POLICY "Owner+ manager write audit" ON audit_log FOR INSERT WITH CHECK (public.current_user_role() IN ('owner', 'manager'));
   END IF;
@@ -248,7 +291,8 @@ END $$;
 DO $$ BEGIN
   IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'system_settings') THEN
     ALTER TABLE system_settings ENABLE ROW LEVEL SECURITY;
-    DROP POLICY IF EXISTS "Allow all" ON system_settings;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.system_settings', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'system_settings'), 'SELECT 1');
     CREATE POLICY "Owner+ manager read settings" ON system_settings FOR SELECT USING (public.current_user_role() IN ('owner', 'manager'));
     CREATE POLICY "Owner+ manager update settings" ON system_settings FOR UPDATE USING (public.current_user_role() IN ('owner', 'manager'));
   END IF;
