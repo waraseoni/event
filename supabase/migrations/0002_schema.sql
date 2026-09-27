@@ -196,6 +196,27 @@ CREATE TABLE IF NOT EXISTS quote_items (
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- NOTE: staff_members must be created BEFORE event_staff / attendance /
+-- staff_advances / commission_rules / bonuses / payroll_entries, because those
+-- tables declare inline FKs to it. Keep this block above them.
+CREATE TABLE IF NOT EXISTS staff_members (
+    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+    contact_id UUID REFERENCES contacts(id) ON DELETE SET NULL,
+    designation TEXT,
+    employment_type TEXT CHECK (employment_type IN ('permanent', 'contract', 'daily')) DEFAULT 'daily',
+    base_salary DECIMAL(12, 2) DEFAULT 0,
+    daily_wage DECIMAL(12, 2) DEFAULT 0,
+    bank_account TEXT,
+    ifsc_code TEXT,
+    pan TEXT,
+    aadhaar TEXT,
+    status TEXT CHECK (status IN ('active', 'inactive', 'terminated')) DEFAULT 'active',
+    joined_at DATE,
+    notes TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 CREATE TABLE IF NOT EXISTS event_staff (
     id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
     event_id UUID NOT NULL REFERENCES events(id) ON DELETE CASCADE,
@@ -272,24 +293,6 @@ CREATE TABLE IF NOT EXISTS rental_contract_items (
     unit_rate DECIMAL(12, 2) DEFAULT 0,
     days INTEGER NOT NULL DEFAULT 1,
     line_total DECIMAL(12, 2) DEFAULT 0,
-    created_at TIMESTAMPTZ DEFAULT NOW(),
-    updated_at TIMESTAMPTZ DEFAULT NOW()
-);
-
-CREATE TABLE IF NOT EXISTS staff_members (
-    id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-    contact_id UUID REFERENCES contacts(id) ON DELETE SET NULL,
-    designation TEXT,
-    employment_type TEXT CHECK (employment_type IN ('permanent', 'contract', 'daily')) DEFAULT 'daily',
-    base_salary DECIMAL(12, 2) DEFAULT 0,
-    daily_wage DECIMAL(12, 2) DEFAULT 0,
-    bank_account TEXT,
-    ifsc_code TEXT,
-    pan TEXT,
-    aadhaar TEXT,
-    status TEXT CHECK (status IN ('active', 'inactive', 'terminated')) DEFAULT 'active',
-    joined_at DATE,
-    notes TEXT,
     created_at TIMESTAMPTZ DEFAULT NOW(),
     updated_at TIMESTAMPTZ DEFAULT NOW()
 );
@@ -475,7 +478,7 @@ CREATE TABLE IF NOT EXISTS audit_log (
 -- (B+) Foreign Key Constraints — add after all tables exist
 -- ================================================================
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'inventory_items') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'inventory_items') THEN
     ALTER TABLE IF EXISTS inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_category;
     ALTER TABLE IF EXISTS inventory_items ADD CONSTRAINT fk_inventory_category FOREIGN KEY (category_id) REFERENCES item_categories(id);
     ALTER TABLE IF EXISTS inventory_items DROP CONSTRAINT IF EXISTS fk_inventory_location;
@@ -483,7 +486,7 @@ DO $$ BEGIN
   END IF;
 END $$;
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'events') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN
     ALTER TABLE IF EXISTS events DROP CONSTRAINT IF EXISTS fk_events_quote;
     ALTER TABLE IF EXISTS events ADD CONSTRAINT fk_events_quote FOREIGN KEY (quote_id) REFERENCES quotes(id) ON DELETE SET NULL;
     ALTER TABLE IF EXISTS events DROP CONSTRAINT IF EXISTS fk_events_created_by;
@@ -491,13 +494,13 @@ DO $$ BEGIN
   END IF;
 END $$;
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_items') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_items') THEN
     ALTER TABLE IF EXISTS event_items DROP CONSTRAINT IF EXISTS fk_event_items_quote;
     ALTER TABLE IF EXISTS event_items ADD CONSTRAINT fk_event_items_quote FOREIGN KEY (quote_item_id) REFERENCES quote_items(id) ON DELETE SET NULL;
   END IF;
 END $$;
 DO $$ BEGIN
-  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payments') THEN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payments') THEN
     ALTER TABLE IF EXISTS payments DROP CONSTRAINT IF EXISTS fk_payments_invoice;
     ALTER TABLE IF EXISTS payments ADD CONSTRAINT fk_payments_invoice FOREIGN KEY (invoice_id) REFERENCES invoices(id) ON DELETE SET NULL;
     ALTER TABLE IF EXISTS payments DROP CONSTRAINT IF EXISTS fk_payments_payroll;
@@ -508,23 +511,23 @@ END $$;
 -- ================================================================
 -- (C) INDEXES for new tables — wrapped in DO blocks
 -- ================================================================
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'profiles') THEN CREATE INDEX IF NOT EXISTS idx_profiles_user ON profiles(user_id); CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_categories') THEN CREATE INDEX IF NOT EXISTS idx_item_categories_parent ON item_categories(parent_id); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'inventory_items') THEN CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category_id); CREATE INDEX IF NOT EXISTS idx_inventory_company ON inventory_items(company); CREATE INDEX IF NOT EXISTS idx_inventory_item_type ON inventory_items(item_type); CREATE INDEX IF NOT EXISTS idx_inventory_location ON inventory_items(location_id); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'pricing_rates') THEN CREATE INDEX IF NOT EXISTS idx_pricing_slab ON pricing_rates(slab); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'special_rates') THEN CREATE INDEX IF NOT EXISTS idx_special_rates_dates ON special_rates(start_date, end_date); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'quotes') THEN CREATE INDEX IF NOT EXISTS idx_quotes_client ON quotes(client_id); CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'events') THEN CREATE INDEX IF NOT EXISTS idx_events_quote ON events(quote_id); CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_datetime); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_staff') THEN CREATE INDEX IF NOT EXISTS idx_event_staff_event ON event_staff(event_id); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_tasks') THEN CREATE INDEX IF NOT EXISTS idx_event_tasks_event ON event_tasks(event_id); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_expenses') THEN CREATE INDEX IF NOT EXISTS idx_event_expenses_event ON event_expenses(event_id); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'rental_contracts') THEN CREATE INDEX IF NOT EXISTS idx_rentals_party ON rental_contracts(party_id); CREATE INDEX IF NOT EXISTS idx_rentals_event ON rental_contracts(event_id); CREATE INDEX IF NOT EXISTS idx_rentals_direction ON rental_contracts(direction, status); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attendance') THEN CREATE INDEX IF NOT EXISTS idx_attendance_staff_date ON attendance(staff_id, date); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payroll_runs') THEN CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id); CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id); CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'stock_movements') THEN CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications') THEN CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles') THEN CREATE INDEX IF NOT EXISTS idx_profiles_user ON profiles(user_id); CREATE INDEX IF NOT EXISTS idx_profiles_role ON profiles(role); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_categories') THEN CREATE INDEX IF NOT EXISTS idx_item_categories_parent ON item_categories(parent_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'inventory_items') THEN CREATE INDEX IF NOT EXISTS idx_inventory_category ON inventory_items(category_id); CREATE INDEX IF NOT EXISTS idx_inventory_company ON inventory_items(company); CREATE INDEX IF NOT EXISTS idx_inventory_item_type ON inventory_items(item_type); CREATE INDEX IF NOT EXISTS idx_inventory_location ON inventory_items(location_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'pricing_rates') THEN CREATE INDEX IF NOT EXISTS idx_pricing_slab ON pricing_rates(slab); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'special_rates') THEN CREATE INDEX IF NOT EXISTS idx_special_rates_dates ON special_rates(start_date, end_date); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quotes') THEN CREATE INDEX IF NOT EXISTS idx_quotes_client ON quotes(client_id); CREATE INDEX IF NOT EXISTS idx_quotes_status ON quotes(status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'events') THEN CREATE INDEX IF NOT EXISTS idx_events_quote ON events(quote_id); CREATE INDEX IF NOT EXISTS idx_events_start ON events(start_datetime); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_staff') THEN CREATE INDEX IF NOT EXISTS idx_event_staff_event ON event_staff(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_tasks') THEN CREATE INDEX IF NOT EXISTS idx_event_tasks_event ON event_tasks(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_expenses') THEN CREATE INDEX IF NOT EXISTS idx_event_expenses_event ON event_expenses(event_id); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'rental_contracts') THEN CREATE INDEX IF NOT EXISTS idx_rentals_party ON rental_contracts(party_id); CREATE INDEX IF NOT EXISTS idx_rentals_event ON rental_contracts(event_id); CREATE INDEX IF NOT EXISTS idx_rentals_direction ON rental_contracts(direction, status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attendance') THEN CREATE INDEX IF NOT EXISTS idx_attendance_staff_date ON attendance(staff_id, date); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_runs') THEN CREATE INDEX IF NOT EXISTS idx_payroll_month ON payroll_runs(payroll_month); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN CREATE INDEX IF NOT EXISTS idx_invoices_client ON invoices(client_id); CREATE INDEX IF NOT EXISTS idx_invoices_event ON invoices(event_id); CREATE INDEX IF NOT EXISTS idx_invoices_status ON invoices(status); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN CREATE INDEX IF NOT EXISTS idx_stock_movements_item ON stock_movements(item_id, created_at); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN CREATE INDEX IF NOT EXISTS idx_notifications_user ON notifications(user_id, is_read); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'audit_log') THEN CREATE INDEX IF NOT EXISTS idx_audit_entity ON audit_log(entity_type, entity_id); END IF; END $$;
 
 -- ================================================================
 -- (D) updated_at triggers for new tables
@@ -535,33 +538,33 @@ BEGIN NEW.updated_at = NOW(); RETURN NEW; END;
 $$ language 'plpgsql';
 
 DO $$ BEGIN
-  PERFORM 1 FROM information_schema.tables WHERE table_name = 'profiles';
+  PERFORM 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'profiles';
   IF FOUND THEN
     DROP TRIGGER IF EXISTS update_profiles_updated_at ON profiles;
     CREATE TRIGGER update_profiles_updated_at BEFORE UPDATE ON profiles FOR EACH ROW EXECUTE FUNCTION update_updated_at_column();
   END IF;
 END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_categories') THEN DROP TRIGGER IF EXISTS update_item_categories_updated_at ON item_categories; CREATE TRIGGER update_item_categories_updated_at BEFORE UPDATE ON item_categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_locations') THEN DROP TRIGGER IF EXISTS update_item_locations_updated_at ON item_locations; CREATE TRIGGER update_item_locations_updated_at BEFORE UPDATE ON item_locations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'item_serials') THEN DROP TRIGGER IF EXISTS update_item_serials_updated_at ON item_serials; CREATE TRIGGER update_item_serials_updated_at BEFORE UPDATE ON item_serials FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'maintenance_records') THEN DROP TRIGGER IF EXISTS update_maintenance_records_updated_at ON maintenance_records; CREATE TRIGGER update_maintenance_records_updated_at BEFORE UPDATE ON maintenance_records FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'special_rates') THEN DROP TRIGGER IF EXISTS update_special_rates_updated_at ON special_rates; CREATE TRIGGER update_special_rates_updated_at BEFORE UPDATE ON special_rates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'quotes') THEN DROP TRIGGER IF EXISTS update_quotes_updated_at ON quotes; CREATE TRIGGER update_quotes_updated_at BEFORE UPDATE ON quotes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'quote_items') THEN DROP TRIGGER IF EXISTS update_quote_items_updated_at ON quote_items; CREATE TRIGGER update_quote_items_updated_at BEFORE UPDATE ON quote_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_staff') THEN DROP TRIGGER IF EXISTS update_event_staff_updated_at ON event_staff; CREATE TRIGGER update_event_staff_updated_at BEFORE UPDATE ON event_staff FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_tasks') THEN DROP TRIGGER IF EXISTS update_event_tasks_updated_at ON event_tasks; CREATE TRIGGER update_event_tasks_updated_at BEFORE UPDATE ON event_tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'event_expenses') THEN DROP TRIGGER IF EXISTS update_event_expenses_updated_at ON event_expenses; CREATE TRIGGER update_event_expenses_updated_at BEFORE UPDATE ON event_expenses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'rental_contracts') THEN DROP TRIGGER IF EXISTS update_rental_contracts_updated_at ON rental_contracts; CREATE TRIGGER update_rental_contracts_updated_at BEFORE UPDATE ON rental_contracts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'rental_contract_items') THEN DROP TRIGGER IF EXISTS update_rental_contract_items_updated_at ON rental_contract_items; CREATE TRIGGER update_rental_contract_items_updated_at BEFORE UPDATE ON rental_contract_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'attendance') THEN DROP TRIGGER IF EXISTS update_attendance_updated_at ON attendance; CREATE TRIGGER update_attendance_updated_at BEFORE UPDATE ON attendance FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'staff_advances') THEN DROP TRIGGER IF EXISTS update_staff_advances_updated_at ON staff_advances; CREATE TRIGGER update_staff_advances_updated_at BEFORE UPDATE ON staff_advances FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'commission_rules') THEN DROP TRIGGER IF EXISTS update_commission_rules_updated_at ON commission_rules; CREATE TRIGGER update_commission_rules_updated_at BEFORE UPDATE ON commission_rules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'bonuses') THEN DROP TRIGGER IF EXISTS update_bonuses_updated_at ON bonuses; CREATE TRIGGER update_bonuses_updated_at BEFORE UPDATE ON bonuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payroll_runs') THEN DROP TRIGGER IF EXISTS update_payroll_runs_updated_at ON payroll_runs; CREATE TRIGGER update_payroll_runs_updated_at BEFORE UPDATE ON payroll_runs FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'payroll_entries') THEN DROP TRIGGER IF EXISTS update_payroll_entries_updated_at ON payroll_entries; CREATE TRIGGER update_payroll_entries_updated_at BEFORE UPDATE ON payroll_entries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoices') THEN DROP TRIGGER IF EXISTS update_invoices_updated_at ON invoices; CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'invoice_items') THEN DROP TRIGGER IF EXISTS update_invoice_items_updated_at ON invoice_items; CREATE TRIGGER update_invoice_items_updated_at BEFORE UPDATE ON invoice_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'expenses') THEN DROP TRIGGER IF EXISTS update_expenses_updated_at ON expenses; CREATE TRIGGER update_expenses_updated_at BEFORE UPDATE ON expenses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'stock_movements') THEN DROP TRIGGER IF EXISTS update_stock_movements_updated_at ON stock_movements; CREATE TRIGGER update_stock_movements_updated_at BEFORE UPDATE ON stock_movements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'notifications') THEN DROP TRIGGER IF EXISTS update_notifications_updated_at ON notifications; CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
-DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_name = 'audit_log') THEN DROP TRIGGER IF EXISTS update_audit_log_updated_at ON audit_log; CREATE TRIGGER update_audit_log_updated_at BEFORE UPDATE ON audit_log FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_categories') THEN DROP TRIGGER IF EXISTS update_item_categories_updated_at ON item_categories; CREATE TRIGGER update_item_categories_updated_at BEFORE UPDATE ON item_categories FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_locations') THEN DROP TRIGGER IF EXISTS update_item_locations_updated_at ON item_locations; CREATE TRIGGER update_item_locations_updated_at BEFORE UPDATE ON item_locations FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_serials') THEN DROP TRIGGER IF EXISTS update_item_serials_updated_at ON item_serials; CREATE TRIGGER update_item_serials_updated_at BEFORE UPDATE ON item_serials FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'maintenance_records') THEN DROP TRIGGER IF EXISTS update_maintenance_records_updated_at ON maintenance_records; CREATE TRIGGER update_maintenance_records_updated_at BEFORE UPDATE ON maintenance_records FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'special_rates') THEN DROP TRIGGER IF EXISTS update_special_rates_updated_at ON special_rates; CREATE TRIGGER update_special_rates_updated_at BEFORE UPDATE ON special_rates FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quotes') THEN DROP TRIGGER IF EXISTS update_quotes_updated_at ON quotes; CREATE TRIGGER update_quotes_updated_at BEFORE UPDATE ON quotes FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'quote_items') THEN DROP TRIGGER IF EXISTS update_quote_items_updated_at ON quote_items; CREATE TRIGGER update_quote_items_updated_at BEFORE UPDATE ON quote_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_staff') THEN DROP TRIGGER IF EXISTS update_event_staff_updated_at ON event_staff; CREATE TRIGGER update_event_staff_updated_at BEFORE UPDATE ON event_staff FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_tasks') THEN DROP TRIGGER IF EXISTS update_event_tasks_updated_at ON event_tasks; CREATE TRIGGER update_event_tasks_updated_at BEFORE UPDATE ON event_tasks FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'event_expenses') THEN DROP TRIGGER IF EXISTS update_event_expenses_updated_at ON event_expenses; CREATE TRIGGER update_event_expenses_updated_at BEFORE UPDATE ON event_expenses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'rental_contracts') THEN DROP TRIGGER IF EXISTS update_rental_contracts_updated_at ON rental_contracts; CREATE TRIGGER update_rental_contracts_updated_at BEFORE UPDATE ON rental_contracts FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'rental_contract_items') THEN DROP TRIGGER IF EXISTS update_rental_contract_items_updated_at ON rental_contract_items; CREATE TRIGGER update_rental_contract_items_updated_at BEFORE UPDATE ON rental_contract_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'attendance') THEN DROP TRIGGER IF EXISTS update_attendance_updated_at ON attendance; CREATE TRIGGER update_attendance_updated_at BEFORE UPDATE ON attendance FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'staff_advances') THEN DROP TRIGGER IF EXISTS update_staff_advances_updated_at ON staff_advances; CREATE TRIGGER update_staff_advances_updated_at BEFORE UPDATE ON staff_advances FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'commission_rules') THEN DROP TRIGGER IF EXISTS update_commission_rules_updated_at ON commission_rules; CREATE TRIGGER update_commission_rules_updated_at BEFORE UPDATE ON commission_rules FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'bonuses') THEN DROP TRIGGER IF EXISTS update_bonuses_updated_at ON bonuses; CREATE TRIGGER update_bonuses_updated_at BEFORE UPDATE ON bonuses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_runs') THEN DROP TRIGGER IF EXISTS update_payroll_runs_updated_at ON payroll_runs; CREATE TRIGGER update_payroll_runs_updated_at BEFORE UPDATE ON payroll_runs FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payroll_entries') THEN DROP TRIGGER IF EXISTS update_payroll_entries_updated_at ON payroll_entries; CREATE TRIGGER update_payroll_entries_updated_at BEFORE UPDATE ON payroll_entries FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoices') THEN DROP TRIGGER IF EXISTS update_invoices_updated_at ON invoices; CREATE TRIGGER update_invoices_updated_at BEFORE UPDATE ON invoices FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoice_items') THEN DROP TRIGGER IF EXISTS update_invoice_items_updated_at ON invoice_items; CREATE TRIGGER update_invoice_items_updated_at BEFORE UPDATE ON invoice_items FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'expenses') THEN DROP TRIGGER IF EXISTS update_expenses_updated_at ON expenses; CREATE TRIGGER update_expenses_updated_at BEFORE UPDATE ON expenses FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'stock_movements') THEN DROP TRIGGER IF EXISTS update_stock_movements_updated_at ON stock_movements; CREATE TRIGGER update_stock_movements_updated_at BEFORE UPDATE ON stock_movements FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'notifications') THEN DROP TRIGGER IF EXISTS update_notifications_updated_at ON notifications; CREATE TRIGGER update_notifications_updated_at BEFORE UPDATE ON notifications FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
+DO $$ BEGIN IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'audit_log') THEN DROP TRIGGER IF EXISTS update_audit_log_updated_at ON audit_log; CREATE TRIGGER update_audit_log_updated_at BEFORE UPDATE ON audit_log FOR EACH ROW EXECUTE FUNCTION update_updated_at_column(); END IF; END $$;
