@@ -1,4 +1,5 @@
 import { createBrowserClient } from '@supabase/ssr'
+import type { Database } from '@/types/supabase'
 
 /**
  * Browser-safe Supabase client. Uses the public anon key and is subject to
@@ -20,4 +21,4 @@ if (!anonKey) {
   )
 }
 
-export const supabaseBrowser = createBrowserClient(url, anonKey)
+export const supabaseBrowser = createBrowserClient<Database>(url, anonKey)

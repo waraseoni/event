@@ -6,6 +6,17 @@ import { supabase } from '@/lib/supabase'
 import { formatCurrency } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 import { Briefcase, Plus } from 'lucide-react'
+import type { EmploymentType } from '@/types'
+
+const EMPLOYMENT_TYPES: EmploymentType[] = ['permanent', 'contract', 'daily']
+
+const EMPTY_FORM = {
+  name: '',
+  designation: '',
+  employment_type: 'daily' as EmploymentType,
+  base_salary: '',
+  daily_wage: '',
+}
 
 export default function StaffPage() {
   const { t, language } = useLanguage()
@@ -13,11 +24,16 @@ export default function StaffPage() {
   const [payroll, setPayroll] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [isOpen, setIsOpen] = useState(false)
-  const [formData, setFormData] = useState({ name: '', designation: '', employment_type: 'daily', base_salary: '', daily_wage: '', contact_id: '' })
+  const [error, setError] = useState('')
+  const [formData, setFormData] = useState(EMPTY_FORM)
 
   async function fetchStaff() {
     try {
-      const { data, error } = await supabase.from('staff_members').select('*').order('created_at', { ascending: false })
+      // the display name lives on contacts, so join it in
+      const { data, error } = await supabase
+        .from('staff_members')
+        .select('*, contact:contacts(name)')
+        .order('created_at', { ascending: false })
       if (error) throw error
       setStaff(data || [])
     } catch (error) {
@@ -42,21 +58,49 @@ export default function StaffPage() {
 
   const handleAdd = async (e: React.FormEvent) => {
     e.preventDefault()
+    if (!formData.name.trim()) {
+      setError(language === 'en' ? 'Please enter a name' : 'कृपया नाम दर्ज करें')
+      return
+    }
+    setError('')
     try {
-      const { error } = await supabase.from('staff_members').insert([{
-        contact_id: formData.contact_id || null,
+      // staff_members has no `name` column - the person lives in `contacts`.
+      // The old form collected a name and then dropped it on the floor, so
+      // every staff row rendered blank. Reuse an existing worker contact with
+      // the same name, otherwise create one, then link to it.
+      const name = formData.name.trim()
+      const { data: existing } = await supabase
+        .from('contacts')
+        .select('id')
+        .eq('name', name)
+        .eq('type', 'worker')
+        .maybeSingle()
+
+      let contactId = existing?.id ?? null
+      if (!contactId) {
+        const { data: created, error: contactError } = await supabase
+          .from('contacts')
+          .insert({ name, type: 'worker', phone: '' })
+          .select('id')
+          .single()
+        if (contactError) throw contactError
+        contactId = created.id
+      }
+
+      const { error: err } = await supabase.from('staff_members').insert([{
+        contact_id: contactId,
         designation: formData.designation || null,
-        employment_type: formData.employment_type,
+        employment_type: formData.employment_type as EmploymentType,
         base_salary: parseFloat(formData.base_salary) || 0,
         daily_wage: parseFloat(formData.daily_wage) || 0,
         status: 'active',
       }])
-      if (error) throw error
+      if (err) throw err
       setIsOpen(false)
-      setFormData({ name: '', designation: '', employment_type: 'daily', base_salary: '', daily_wage: '', contact_id: '' })
+      setFormData({ name: '', designation: '', employment_type: 'daily', base_salary: '', daily_wage: '' })
       fetchStaff()
-    } catch {
-      alert('Error adding staff')
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err))
     }
   }
 
@@ -101,10 +145,10 @@ export default function StaffPage() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium mb-1">{language === 'en' ? 'Employment Type' : 'नियुक्ति प्रकार'}</label>
-                  <select value={formData.employment_type} onChange={(e) => setFormData({...formData, employment_type: e.target.value})} className="w-full px-3 py-2 border rounded-md">
-                    <option value="permanent">Permanent</option>
-                    <option value="contract">Contract</option>
-                    <option value="daily">Daily</option>
+                  <select value={formData.employment_type} onChange={(e) => setFormData({...formData, employment_type: e.target.value as EmploymentType})} className="w-full px-3 py-2 border rounded-md">
+                    {EMPLOYMENT_TYPES.map((et) => (
+                      <option key={et} value={et}>{et}</option>
+                    ))}
                   </select>
                 </div>
               </div>
@@ -118,6 +162,7 @@ export default function StaffPage() {
                   <input type="number" value={formData.daily_wage} onChange={(e) => setFormData({...formData, daily_wage: e.target.value})} className="w-full px-3 py-2 border rounded-md" />
                 </div>
               </div>
+              {error && <p className="text-sm text-destructive break-words">{error}</p>}
               <div className="flex gap-2 pt-4">
                 <button type="button" onClick={() => setIsOpen(false)} className="flex-1 rounded-md border py-2 text-sm font-medium hover:bg-muted">{t('common.cancel')}</button>
                 <button type="submit" className="flex-1 rounded-md bg-slate-900 py-2 text-sm font-medium text-white hover:bg-slate-700">{t('common.save')}</button>
@@ -136,7 +181,7 @@ export default function StaffPage() {
                 {staff.map((s) => (
                   <div key={s.id} className="flex justify-between text-sm py-1 border-b last:border-0">
                     <div>
-                      <span className="font-medium">{s.name}</span>
+                      <span className="font-medium">{s.contact?.name ?? '—'}</span>
                       <span className="text-muted-foreground ml-2">{s.designation}</span>
                     </div>
                     <span className={`px-2 py-0.5 rounded text-xs ${s.status === 'active' ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}`}>

@@ -8,6 +8,10 @@ import { Input } from '@/components/ui/input'
 import { useToast } from '@/components/ui/toast'
 import { useLanguage } from '@/contexts/language-context'
 import { useSystemSettings } from '@/contexts/system-settings-context'
+import type { InventoryItem } from '@/types'
+import type { Database } from '@/types/supabase'
+
+type InventoryInsert = Database['public']['Tables']['inventory_items']['Insert']
 
 export function InventoryPage() {
   const { t } = useLanguage()
@@ -101,17 +105,25 @@ export function InventoryPage() {
   )
 }
 
-function InventoryForm({ item, onClose }: { item: any; onClose: () => void }) {
+function InventoryForm({ item, onClose }: { item: InventoryItem | null; onClose: () => void }) {
   const { t } = useLanguage()
   const { success, error } = useToast()
   const [form, setForm] = useState({
-    name: item?.name ?? '', company: item?.company ?? '', model: item?.model ?? '',
-    scope: item?.scope ?? '', item_type: item?.item_type ?? 'owned',
+    name: item?.name ?? '',
+    // category is NOT NULL with no default, so an insert without it is rejected
+    category: item?.category ?? '',
+    description: item?.description ?? '',
+    company: item?.company ?? '',
+    model: item?.model ?? '',
+    scope: item?.scope ?? '',
+    item_type: (item?.item_type ?? 'owned') as NonNullable<InventoryItem['item_type']>,
     target_event_types: (item?.target_event_types ?? []).join(', '),
-    estimated_rent_price: item?.estimated_rent_price ?? '',
-    min_price: item?.min_price ?? '', security_deposit: item?.security_deposit ?? '',
-    total_quantity: item?.total_quantity ?? 1, unit: item?.unit ?? 'piece',
-    condition: item?.condition ?? 'good', notes: item?.notes ?? '',
+    estimated_rent_price: String(item?.estimated_rent_price ?? ''),
+    min_price: String(item?.min_price ?? ''),
+    security_deposit: String(item?.security_deposit ?? ''),
+    total_quantity: String(item?.total_quantity ?? 1),
+    unit: item?.unit ?? 'piece',
+    condition: (item?.condition ?? 'good') as NonNullable<InventoryItem['condition']>,
   })
   const [saving, setSaving] = useState(false)
 
@@ -119,24 +131,37 @@ function InventoryForm({ item, onClose }: { item: any; onClose: () => void }) {
     e.preventDefault()
     setSaving(true)
     try {
-      const payload = {
-        name: form.name, company: form.company, model: form.model, scope: form.scope,
-        item_type: form.item_type, target_event_types: form.target_event_types.split(',').map((s: string) => s.trim()).filter(Boolean),
+      // unique_code is supplied per-branch below, so it is left out of the
+      // shared payload: the update keeps the existing code, a new item gets one.
+      const payload: Omit<InventoryInsert, 'unique_code'> = {
+        name: form.name,
+        category: form.category,
+        description: form.description || null,
+        company: form.company || null,
+        model: form.model || null,
+        scope: form.scope || null,
+        item_type: form.item_type,
+        target_event_types: form.target_event_types.split(',').map((s) => s.trim()).filter(Boolean),
         estimated_rent_price: Number(form.estimated_rent_price) || 0,
-        min_price: Number(form.min_price) || 0, security_deposit: Number(form.security_deposit) || 0,
-        total_quantity: Number(form.total_quantity), unit: form.unit, condition: form.condition, notes: form.notes,
+        min_price: Number(form.min_price) || 0,
+        security_deposit: Number(form.security_deposit) || 0,
+        total_quantity: Number(form.total_quantity),
+        unit: form.unit,
+        condition: form.condition,
       }
       if (item?.id) {
-        const { error } = await supabase.from('inventory_items').update(payload).eq('id', item.id)
-        if (error) throw error
+        const { error: err } = await supabase.from('inventory_items').update(payload).eq('id', item.id)
+        if (err) throw err
         success('Updated')
       } else {
-        const { error } = await supabase.from('inventory_items').insert({ ...payload, status: 'available', unique_code: 'ITEM-' + Date.now() })
-        if (error) throw error
+        const { error: err } = await supabase
+          .from('inventory_items')
+          .insert({ ...payload, status: 'available', unique_code: 'ITEM-' + Date.now() })
+        if (err) throw err
         success('Created')
       }
       onClose()
-    } catch (err: any) { error(err.message) }
+    } catch (err) { error(err instanceof Error ? err.message : String(err)) }
     setSaving(false)
   }
 
@@ -149,6 +174,9 @@ function InventoryForm({ item, onClose }: { item: any; onClose: () => void }) {
         </div>
         {[
           { label: 'Name', key: 'name', required: true },
+          // inventory_items has no `notes` column; description is the real one
+          { label: 'Category', key: 'category', required: true },
+          { label: 'Description', key: 'description', textarea: true },
           { label: 'Company', key: 'company' },
           { label: 'Model', key: 'model' },
           { label: 'Scope', key: 'scope' },
@@ -160,18 +188,19 @@ function InventoryForm({ item, onClose }: { item: any; onClose: () => void }) {
           { label: 'Total Quantity', key: 'total_quantity', as: 'number' },
           { label: 'Unit', key: 'unit' },
           { label: 'Condition', key: 'condition', as: 'select', opts: ['excellent', 'good', 'fair', 'poor'] },
-          { label: 'Notes', key: 'notes', textarea: true },
         ].map(f => (
           <div key={f.key} className="space-y-1">
-            <label className="block text-sm font-medium">{f.label}</label>
+            <label className="block text-sm font-medium">
+              {f.label}{f.required ? ' *' : ''}
+            </label>
             {f.as === 'select' ? (
-              <select value={(form as any)[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm">
+              <select value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm">
                 {f.opts!.map(o => <option key={o} value={o}>{o}</option>)}
               </select>
             ) : f.textarea ? (
-              <textarea value={(form as any)[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm" rows={2} />
+              <textarea value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm" rows={2} />
             ) : (
-              <input type={f.as ?? 'text'} value={(form as any)[f.key]} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm" />
+              <input required={f.required} type={f.as ?? 'text'} value={String((form as Record<string, unknown>)[f.key])} onChange={e => setForm({ ...form, [f.key]: e.target.value })} className="w-full rounded border p-2 text-sm" />
             )}
           </div>
         ))}

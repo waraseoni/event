@@ -7,7 +7,9 @@
   "scripts": {
     "validate": "node assert-schema.js",
     "audit:columns": "node audit-columns.js",
-    "check": "npm run validate && npm run audit:columns"
+    "gen:types": "node gen-types.js",
+    "gen:types:check": "node gen-types.js --check",
+    "check": "npm run validate && npm run audit:columns && npm run gen:types:check"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.8"

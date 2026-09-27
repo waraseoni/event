@@ -1,4 +1,4 @@
-// Final-state assertions: run the schema twice, then verify the database is
+﻿// Final-state assertions: run the schema twice, then verify the database is
 // actually in the expected end state (tables, RLS, policies, columns, data).
 const fs = require('fs');
 const path = require('path');
@@ -83,21 +83,88 @@ function statements(sql) {
                  INSERT INTO inventory_items (name,category,unique_code) VALUES ('Panel','light','P1');`);
   const e2 = await run();
 
+  // The incremental migrations are how the live database is actually updated, so
+  // they must apply cleanly on top of schema.sql and survive a re-run. Asserting
+  // only on schema.sql would miss a migration that only breaks the live path.
+  const MIGRATION = path.join(__dirname, '..', 'migrations', '0004_security_and_defects.sql');
+  const runMigrations = async () => {
+    const errs = [];
+    for (const s of statements(fs.readFileSync(MIGRATION, 'utf8'))) {
+      try { await db.exec(s + ';'); } catch (e) { errs.push(String(e.message).split('\n')[0]); }
+    }
+    return errs;
+  };
+  const m1 = await runMigrations();
+  const m2 = await runMigrations();
+
   const checks = [];
   const chk = (name, actual, expected) =>
     checks.push({ name, actual, expected, ok: String(actual) === String(expected) });
 
   chk('pass1 errors', e1.length, 0);
   chk('pass2 errors (idempotent)', e2.length, 0);
+  chk('migration 0004 errors', m1.length, 0);
+  chk('migration 0004 errors (re-runnable)', m2.length, 0);
 
   const t = await db.query(`SELECT count(*)::int c FROM information_schema.tables WHERE table_schema='public'`);
   chk('public tables', t.rows[0].c, 35);
 
   const rls = await db.query(`SELECT count(*)::int c FROM pg_tables WHERE schemaname='public' AND rowsecurity`);
-  chk('tables with RLS enabled', rls.rows[0].c, 28);
+  chk('tables with RLS enabled', rls.rows[0].c, 35);
 
   const pol = await db.query(`SELECT count(*)::int c FROM pg_policies WHERE schemaname='public'`);
-  chk('policies present', pol.rows[0].c, 60);
+  chk('policies present', pol.rows[0].c, 75);
+
+  // D1: a table without RLS is fully readable AND writable with the public
+  // anon key, so every public table must have it enabled.
+  const noRls = await db.query(`SELECT tablename FROM pg_tables
+      WHERE schemaname='public' AND NOT rowsecurity ORDER BY tablename`);
+  chk('tables missing RLS', noRls.rows.map((r) => r.tablename).join(',') || 'none', 'none');
+
+  // D2: system_settings is seeded on first save, so it needs a write policy.
+  const ssIns = await db.query(`SELECT count(*)::int c FROM pg_policies
+      WHERE schemaname='public' AND tablename='system_settings' AND cmd IN ('INSERT','ALL')`);
+  chk('system_settings write policy', ssIns.rows[0].c > 0, true);
+
+  // Behavioural regression test for D1. Counting policies would not have caught
+  // the defect, so reproduce the real Supabase conditions instead: the `anon`
+  // role is granted full table privileges, and RLS alone has to stop it. If a
+  // table loses ENABLE ROW LEVEL SECURITY, the read below starts leaking rows.
+  await db.exec(`
+    DO $$ BEGIN
+      IF NOT EXISTS (SELECT 1 FROM pg_roles WHERE rolname = 'anon') THEN
+        CREATE ROLE anon NOLOGIN;
+      END IF;
+    END $$;
+    GRANT USAGE ON SCHEMA public TO anon;
+    GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO anon;
+  `);
+
+  await db.exec(`INSERT INTO payments (type,category,amount,payment_date,payment_method)
+      VALUES ('incoming','rental_income',5000,current_date,'cash')`);
+
+  const asAnon = async (sql) => {
+    await db.exec('SET ROLE anon');
+    try { return { error: null, rows: (await db.query(sql)).rows }; }
+    catch (e) { return { error: String(e.message), rows: [] }; }
+    finally { await db.exec('RESET ROLE'); }
+  };
+
+  const anonPayments = await asAnon('SELECT id FROM payments');
+  chk('anon cannot read payments rows', anonPayments.error === null && anonPayments.rows.length, 0);
+
+  const anonWrite = await asAnon(
+    `INSERT INTO payments (type,category,amount,payment_date,payment_method)
+     VALUES ('incoming','rental_income',1,current_date,'cash')`);
+  chk('anon cannot insert into payments', /row-level security/i.test(anonWrite.error || ''), true);
+
+  for (const t of ['invoice_items', 'external_rentals', 'worker_assignments',
+    'item_serials', 'maintenance_records', 'special_rates']) {
+    const r = await asAnon(`SELECT * FROM ${t}`);
+    chk(`anon blocked on ${t}`, r.error !== null || r.rows.length === 0, true);
+  }
+
+  await db.exec(`DELETE FROM payments`);
 
   // no duplicate policy names per table (would mean cleanup loop failed)
   const dup = await db.query(`SELECT count(*)::int c FROM (
@@ -119,6 +186,84 @@ function statements(sql) {
         ('payments','invoice_id'),('payments','party_type'),
         ('system_settings','invoice_prefix'),('system_settings','currency'))`);
   chk('migrated columns present', cols.rows[0].c, 18);
+
+  // ---------------------------------------------------------------------
+  // DRIFT GUARD
+  // The app used to disagree with the database here and nothing caught it,
+  // because src/types/supabase.ts was generated from an older schema and no
+  // assertion ever read a CHECK constraint. These pin the exact values and
+  // column names the TypeScript unions have to match, so the next drift fails
+  // the build instead of failing at runtime as a constraint violation.
+  // ---------------------------------------------------------------------
+  const allowedValues = async (table, column) => {
+    const r = await db.query(
+      `SELECT pg_get_constraintdef(c.oid) AS def
+         FROM pg_constraint c
+         JOIN pg_class t     ON t.oid = c.conrelid
+         JOIN pg_namespace n ON n.oid = t.relnamespace
+        WHERE n.nspname='public' AND t.relname=$1 AND c.contype='c'
+          AND pg_get_constraintdef(c.oid) LIKE '%' || $2 || '%'`,
+      [table, column]
+    );
+    if (!r.rows.length) return null;
+    const lits = [...r.rows.map(x => x.def).join(' ').matchAll(/'([^']*)'/g)].map(m => m[1]);
+    return lits.length ? lits : null;
+  };
+
+  const hasCols = async (table, wanted, unwanted) => {
+    const r = await db.query(
+      `SELECT column_name FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=$1`, [table]
+    );
+    const have = new Set(r.rows.map(x => x.column_name));
+    const missing = wanted.filter(c => !have.has(c));
+    const ghost = unwanted.filter(c => have.has(c));
+    return { missing, ghost };
+  };
+
+  const j = v => JSON.stringify(v);
+
+  chk('CHECK inventory_items.item_type',
+    j(await allowedValues('inventory_items', 'item_type')),
+    j(['owned', 'leased']));
+  chk('CHECK pricing_rates.rental_type',
+    j(await allowedValues('pricing_rates', 'rental_type')),
+    j(['daily', 'weekly', 'monthly', 'per_event']));
+  chk('CHECK rental_contracts.rate_type',
+    j(await allowedValues('rental_contracts', 'rate_type')),
+    j(['daily', 'weekly', 'monthly', 'per_event', 'fixed']));
+
+  // 'hourly' is not a legal rental_type; a stale generated type once added it.
+  const hourly = await db.query(
+    `SELECT 1 FROM pg_constraint c
+       JOIN pg_class t     ON t.oid = c.conrelid
+       JOIN pg_namespace n ON n.oid = t.relnamespace
+      WHERE n.nspname='public' AND t.relname='pricing_rates' AND c.contype='c'
+        AND pg_get_constraintdef(c.oid) LIKE '%hourly%'`);
+  chk('no hourly rental_type in DB', hourly.rows.length, 0);
+
+  const dayCols = await hasCols('pricing_rates',
+    ['min_rental_days', 'max_rental_days'], ['min_days', 'max_days']);
+  chk('pricing_rates day columns', j(dayCols.missing.concat(dayCols.ghost)), j([]));
+
+  // start_datetime is a real, indexed, nullable column added by 0002; the app
+  // just does not write it. client_id is the genuine ghost.
+  const evCols = await hasCols('events',
+    ['customer_id', 'event_date'], ['client_id']);
+  chk('events column names', j(evCols.missing.concat(evCols.ghost)), j([]));
+
+  const eiCols = await hasCols('event_items',
+    ['quantity', 'rental_days', 'total_amount'], ['qty', 'days', 'line_total']);
+  chk('event_items column names', j(eiCols.missing.concat(eiCols.ghost)), j([]));
+
+  // text[] columns the app used to write as a scalar string
+  for (const [t, c] of [['inventory_items', 'target_event_types'],
+                        ['pricing_rates', 'applicable_days']]) {
+    const ty = await db.query(
+      `SELECT data_type FROM information_schema.columns
+        WHERE table_schema='public' AND table_name=$1 AND column_name=$2`, [t, c]);
+    chk(`${t}.${c} is ARRAY`, ty.rows[0] && ty.rows[0].data_type, 'ARRAY');
+  }
 
   // the previously-broken array column
   const ad = await db.query(`SELECT data_type FROM information_schema.columns

@@ -1,63 +1,31 @@
-// Contact Types
-export type ContactType = 'vendor' | 'renter' | 'customer' | 'worker'
+// ---------------------------------------------------------------------------
+// Table-backed types are DERIVED from src/types/supabase.ts, which is generated
+// from supabase/schema.sql (see supabase/validation/gen-types.js).
+//
+// They used to be hand-written here, and drifted. That drift was invisible
+// because the browser client was created without a Database generic, so nothing
+// ever type-checked a query. Two concrete casualties: InventoryItem.item_type
+// was 'owned'|'external'|'both' while the CHECK allows 'owned'|'leased', and
+// target_event_types was a string while the column is TEXT[]. Deriving removes
+// the possibility, and the drift guard in assert-schema.js pins the values.
+// ---------------------------------------------------------------------------
+import type { Database } from './supabase'
 
-export interface Contact {
-  id: string
-  name: string
-  type: ContactType
-  phone: string
-  email?: string
-  address?: string
-  company_name?: string
-  gst_number?: string
-  notes?: string
-  created_at: string
-  updated_at: string
-}
+type Tables = Database['public']['Tables']
+type Row<T extends keyof Tables> = Tables[T]['Row']
+
+// Contact Types
+export type ContactType = NonNullable<Row<'contacts'>['type']>
+export type Contact = Row<'contacts'>
 
 // Inventory Types
-export interface InventoryItem {
-  id: string
-  name: string
-  category: string
-  description?: string
-  serial_number?: string
-  unique_code: string
-  company?: string
-  model?: string
-  scope?: string
-  item_type?: 'owned' | 'external' | 'both'
-  target_event_types?: string
-  estimated_rent_price?: number
-  min_price?: number
-  security_deposit?: number
-  reorder_level: number
-  total_quantity: number
-  available_quantity: number
-  unit: string
-  purchase_date?: string
-  purchase_price?: number
-  condition: 'excellent' | 'good' | 'fair' | 'poor'
-  status: 'available' | 'rented' | 'maintenance' | 'retired'
-  location?: string
-  created_at: string
-  updated_at: string
-}
+export type InventoryItem = Row<'inventory_items'>
 
 // Pricing Types
-export interface PricingRate {
-  id: string
-  inventory_item_id: string
-  inventory_item?: InventoryItem
-  rental_type: 'daily' | 'weekly' | 'monthly' | 'per_event'
-  rate: number
-  security_deposit?: number
-  min_rental_days?: number
-  max_rental_days?: number
-  applicable_days?: number[] // [0,1,2,3,4,5,6] for days of week
-  special_rates?: SpecialRate[]
-  created_at: string
-  updated_at: string
+export type RentalType = Row<'pricing_rates'>['rental_type']
+export type PricingRate = Row<'pricing_rates'> & {
+  inventory_item?: Pick<InventoryItem, 'id' | 'name' | 'unique_code'> | null
+  special_rates?: SpecialRate[] | null
 }
 
 export interface SpecialRate {
@@ -70,97 +38,30 @@ export interface SpecialRate {
 }
 
 // Event Types
-export interface Event {
-  id: string
-  name: string
-  customer_id: string
-  customer?: Contact
-  event_type: string
-  event_date: string
-  end_date?: string
-  venue_address?: string
-  status: 'planned' | 'confirmed' | 'in_progress' | 'completed' | 'cancelled'
-  total_amount: number
-  total_expenses: number
-  profit_loss: number
-  notes?: string
-  created_at: string
-  updated_at: string
+export type EventStatus = NonNullable<Row<'events'>['status']>
+export type Event = Row<'events'> & {
+  // added by the `customer:contacts(name)` nested select in the dashboard
+  customer?: { name: string } | null
 }
 
-export interface EventItem {
-  id: string
-  event_id: string
-  event?: Event
-  inventory_item_id: string
-  inventory_item?: InventoryItem
-  quantity: number
-  rental_days: number
-  rental_start_date: string
-  rental_end_date: string
-  unit_rate: number
-  total_amount: number
-  status: 'reserved' | 'picked_up' | 'returned' | 'damaged'
-  notes?: string
-  created_at: string
-  updated_at: string
+export type EventItem = Row<'event_items'> & {
+  event?: Event | null
+  inventory_item?: InventoryItem | null
 }
 
-// External Rental Types (when we rent from others)
-export interface ExternalRental {
-  id: string
-  vendor_id: string
-  vendor?: Contact
-  event_id?: string
-  event?: Event
-  item_name: string
-  description?: string
-  quantity: number
-  rental_start_date: string
-  rental_end_date: string
-  rental_days: number
-  unit_rate: number
-  total_amount: number
-  security_deposit?: number
-  status: 'booked' | 'picked_up' | 'returned' | 'cancelled'
-  notes?: string
-  created_at: string
-  updated_at: string
+export type ExternalRental = Row<'external_rentals'> & {
+  vendor?: Contact | null
+  event?: Event | null
 }
 
-// Worker Assignment Types
-export interface WorkerAssignment {
-  id: string
-  worker_id: string
-  worker?: Contact
-  event_id: string
-  event?: Event
-  role: string
-  wage_per_day: number
-  total_days: number
-  total_wages: number
-  status: 'assigned' | 'working' | 'completed' | 'cancelled'
-  notes?: string
-  created_at: string
-  updated_at: string
+export type WorkerAssignment = Row<'worker_assignments'> & {
+  worker?: Contact | null
+  event?: Event | null
 }
 
-// Payment Types
-export interface Payment {
-  id: string
-  contact_id?: string
-  contact?: Contact
-  event_id?: string
-  event?: Event
-  type: 'incoming' | 'outgoing'
-  category: 'rental_income' | 'rental_expense' | 'wages' | 'advance' | 'refund' | 'other'
-  amount: number
-  payment_date: string
-  payment_method: 'cash' | 'bank_transfer' | 'upi' | 'cheque' | 'card'
-  reference_number?: string
-  notes?: string
-  created_at: string
-  updated_at: string
+export type Payment = Row<'payments'> & {
+  contact?: Contact | null
+  event?: Event | null
 }
 
 // Dashboard Types
@@ -208,53 +109,11 @@ export interface EventFilter {
 }
 
 // System Settings Type
-export interface SystemSettings {
-  id: string
-  system_name: string
-  system_short_name: string
-  owner_name: string
-  proprietor_name?: string
-  contact_number: string
-  email: string
-  office_address: string
-  city?: string
-  state?: string
-  pincode?: string
-  gst_number?: string
-  logo_url?: string
-  banner_url?: string
-  website_url?: string
-  facebook_url?: string
-  instagram_url?: string
-  twitter_url?: string
-  favicon_url?: string
-  currency_symbol: string
-  date_format: string
-  time_format: string
-  theme_color?: string
-  accent_color?: string
-  created_at: string
-  updated_at: string
-}
+export type SystemSettings = Row<'system_settings'>
 
 // Staff Types
-export interface StaffMember {
-  id: string
-  contact_id?: string
-  designation?: string
-  employment_type: 'permanent' | 'contract' | 'daily'
-  base_salary: number
-  daily_wage: number
-  bank_account?: string
-  ifsc_code?: string
-  pan?: string
-  aadhaar?: string
-  status: 'active' | 'inactive' | 'terminated'
-  joined_at?: string
-  notes?: string
-  created_at: string
-  updated_at: string
-}
+export type EmploymentType = NonNullable<Row<'staff_members'>['employment_type']>
+export type StaffMember = Row<'staff_members'>
 
 export interface PayrollRun {
   id: string
@@ -269,22 +128,9 @@ export interface PayrollRun {
 }
 
 // Rental Types
-export interface RentalContract {
-  id: string
-  contract_no: string
-  direction: 'in' | 'out'
-  party_id: string
-  event_id?: string
-  contract_date: string
-  start_date: string
-  end_date: string
-  rate_type: string
-  rate: number
-  total_amount: number
-  security_deposit: number
-  status: string
-  notes?: string
-  created_at: string
+export type RentalContract = Row<'rental_contracts'> & {
+  party?: Contact | null
+  event?: Event | null
 }
 
 // Invoice Types

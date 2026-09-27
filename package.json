@@ -9,6 +9,9 @@
     "lint": "next lint",
     "type-check": "tsc --noEmit",
     "supabase:gen": "supabase gen types typescript --project-id dxinfzajqemeuvamvsbr --schema public > src/types/supabase.ts",
+    "supabase:gen:offline": "node supabase/validation/gen-types.js",
+    "db:check": "npm --prefix supabase/validation run check",
+    "check": "npm run db:check && npm run type-check",
     "db:migrate": "supabase db push",
     "db:status": "supabase db status",
     "db:reset": "supabase db reset"

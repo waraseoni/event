@@ -1,124 +1,136 @@
-# Events Management System
+﻿# Events Management System
 
-A complete web-based Events Management System built with **Next.js 14**, **Supabase**, and **Tailwind CSS**. Deployed on **Vercel**.
+A complete web-based Events Management System built with **Next.js 16**, **Supabase**, and **Tailwind CSS**. Deployed on **Vercel**.
 
 ## Features
 
-### संपर्क प्रबंधन (Contact Management)
-- **विक्रेता (Vendors)**: लोग जिनसे हम सामान किराए पर लेते हैं
-- **किरायेदार (Renters)**: लोग जिन्हें हम अपना सामान किराए पर देते हैं
-- **ग्राहक (Customers)**: जिनके लिए ईवेंट्स मैनेज करते हैं
-- **कर्मचारी (Workers)**: जो ईवेंट्स में काम करते हैं
+### à¤¸à¤‚à¤ªà¤°à¥à¤• à¤ªà¥à¤°à¤¬à¤‚à¤§à¤¨ (Contact Management)
+- **à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¤¾ (Vendors)**: à¤²à¥‹à¤— à¤œà¤¿à¤¨à¤¸à¥‡ à¤¹à¤® à¤¸à¤¾à¤®à¤¾à¤¨ à¤•à¤¿à¤°à¤¾à¤ à¤ªà¤° à¤²à¥‡à¤¤à¥‡ à¤¹à¥ˆà¤‚
+- **à¤•à¤¿à¤°à¤¾à¤¯à¥‡à¤¦à¤¾à¤° (Renters)**: à¤²à¥‹à¤— à¤œà¤¿à¤¨à¥à¤¹à¥‡à¤‚ à¤¹à¤® à¤…à¤ªà¤¨à¤¾ à¤¸à¤¾à¤®à¤¾à¤¨ à¤•à¤¿à¤°à¤¾à¤ à¤ªà¤° à¤¦à¥‡à¤¤à¥‡ à¤¹à¥ˆà¤‚
+- **à¤—à¥à¤°à¤¾à¤¹à¤• (Customers)**: à¤œà¤¿à¤¨à¤•à¥‡ à¤²à¤¿à¤ à¤ˆà¤µà¥‡à¤‚à¤Ÿà¥à¤¸ à¤®à¥ˆà¤¨à¥‡à¤œ à¤•à¤°à¤¤à¥‡ à¤¹à¥ˆà¤‚
+- **à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ (Workers)**: à¤œà¥‹ à¤ˆà¤µà¥‡à¤‚à¤Ÿà¥à¤¸ à¤®à¥‡à¤‚ à¤•à¤¾à¤® à¤•à¤°à¤¤à¥‡ à¤¹à¥ˆà¤‚
 
-### इन्वेंटरी प्रबंधन (Inventory Management)
-- सभी उपलब्ध सामान की सूची
-- यूनिक कोड और सीरियल नंबर की सुविधा
-- मात्रा ट्रैकिंग (कुल, उपलब्ध, किराए पर)
-- स्थिति ट्रैकिंग (उपलब्ध, किराए पर, मरम्मत में)
+### à¤‡à¤¨à¥à¤µà¥‡à¤‚à¤Ÿà¤°à¥€ à¤ªà¥à¤°à¤¬à¤‚à¤§à¤¨ (Inventory Management)
+- à¤¸à¤­à¥€ à¤‰à¤ªà¤²à¤¬à¥à¤§ à¤¸à¤¾à¤®à¤¾à¤¨ à¤•à¥€ à¤¸à¥‚à¤šà¥€
+- à¤¯à¥‚à¤¨à¤¿à¤• à¤•à¥‹à¤¡ à¤”à¤° à¤¸à¥€à¤°à¤¿à¤¯à¤² à¤¨à¤‚à¤¬à¤° à¤•à¥€ à¤¸à¥à¤µà¤¿à¤§à¤¾
+- à¤®à¤¾à¤¤à¥à¤°à¤¾ à¤Ÿà¥à¤°à¥ˆà¤•à¤¿à¤‚à¤— (à¤•à¥à¤², à¤‰à¤ªà¤²à¤¬à¥à¤§, à¤•à¤¿à¤°à¤¾à¤ à¤ªà¤°)
+- à¤¸à¥à¤¥à¤¿à¤¤à¤¿ à¤Ÿà¥à¤°à¥ˆà¤•à¤¿à¤‚à¤— (à¤‰à¤ªà¤²à¤¬à¥à¤§, à¤•à¤¿à¤°à¤¾à¤ à¤ªà¤°, à¤®à¤°à¤®à¥à¤®à¤¤ à¤®à¥‡à¤‚)
 
-### किराया मूल्य निर्धारण (Rental Pricing)
-- दैनिक, साप्ताहिक, मासिक, या प्रति ईवेंट कीमत
-- सुरक्षा जमा (Security Deposit)
-- न्यूनतम/अधिकतम किराया अवधि
-- विशेष दरें (weekend, season)
+### à¤•à¤¿à¤°à¤¾à¤¯à¤¾ à¤®à¥‚à¤²à¥à¤¯ à¤¨à¤¿à¤°à¥à¤§à¤¾à¤°à¤£ (Rental Pricing)
+- à¤¦à¥ˆà¤¨à¤¿à¤•, à¤¸à¤¾à¤ªà¥à¤¤à¤¾à¤¹à¤¿à¤•, à¤®à¤¾à¤¸à¤¿à¤•, à¤¯à¤¾ à¤ªà¥à¤°à¤¤à¤¿ à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤•à¥€à¤®à¤¤
+- à¤¸à¥à¤°à¤•à¥à¤·à¤¾ à¤œà¤®à¤¾ (Security Deposit)
+- à¤¨à¥à¤¯à¥‚à¤¨à¤¤à¤®/à¤…à¤§à¤¿à¤•à¤¤à¤® à¤•à¤¿à¤°à¤¾à¤¯à¤¾ à¤…à¤µà¤§à¤¿
+- à¤µà¤¿à¤¶à¥‡à¤· à¤¦à¤°à¥‡à¤‚ (weekend, season)
 
-### ईवेंट प्रबंधन (Event Management)
-- ईवेंट बुकिंग और ट्रैकिंग
-- ग्राहक विवरण और स्थल पता
-- प्रति ईवेंट सामान आवंटन
-- किराये की अवधि और मात्रा ट्रैकिंग
+### à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤ªà¥à¤°à¤¬à¤‚à¤§à¤¨ (Event Management)
+- à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¬à¥à¤•à¤¿à¤‚à¤— à¤”à¤° à¤Ÿà¥à¤°à¥ˆà¤•à¤¿à¤‚à¤—
+- à¤—à¥à¤°à¤¾à¤¹à¤• à¤µà¤¿à¤µà¤°à¤£ à¤”à¤° à¤¸à¥à¤¥à¤² à¤ªà¤¤à¤¾
+- à¤ªà¥à¤°à¤¤à¤¿ à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¸à¤¾à¤®à¤¾à¤¨ à¤†à¤µà¤‚à¤Ÿà¤¨
+- à¤•à¤¿à¤°à¤¾à¤¯à¥‡ à¤•à¥€ à¤…à¤µà¤§à¤¿ à¤”à¤° à¤®à¤¾à¤¤à¥à¤°à¤¾ à¤Ÿà¥à¤°à¥ˆà¤•à¤¿à¤‚à¤—
 
-### वित्तीय प्रबंधन
-- **आय (Income)**: किराये से आय, अन्य सेवाओं से आय
-- **व्यय (Expenses)**: बाहरी किराया, कर्मचारी वेतन, अन्य खर्चे
-- **लाभ/हानि (Profit/Loss)**: प्रति ईवेंट और समग्र लेखा
+### à¤µà¤¿à¤¤à¥à¤¤à¥€à¤¯ à¤ªà¥à¤°à¤¬à¤‚à¤§à¤¨
+- **à¤†à¤¯ (Income)**: à¤•à¤¿à¤°à¤¾à¤¯à¥‡ à¤¸à¥‡ à¤†à¤¯, à¤…à¤¨à¥à¤¯ à¤¸à¥‡à¤µà¤¾à¤“à¤‚ à¤¸à¥‡ à¤†à¤¯
+- **à¤µà¥à¤¯à¤¯ (Expenses)**: à¤¬à¤¾à¤¹à¤°à¥€ à¤•à¤¿à¤°à¤¾à¤¯à¤¾, à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤µà¥‡à¤¤à¤¨, à¤…à¤¨à¥à¤¯ à¤–à¤°à¥à¤šà¥‡
+- **à¤²à¤¾à¤­/à¤¹à¤¾à¤¨à¤¿ (Profit/Loss)**: à¤ªà¥à¤°à¤¤à¤¿ à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤”à¤° à¤¸à¤®à¤—à¥à¤° à¤²à¥‡à¤–à¤¾
 
-### रिपोर्ट्स और विश्लेषण
-- मासिक/वार्षिक रिपोर्ट्स
-- इन्वेंटरी उपयोग विश्लेषण
-- भविष्य की बुकिंग क्षमता कैलकुलेटर
-- ग्राहक और विक्रेता विश्लेषण
+### à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿà¥à¤¸ à¤”à¤° à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£
+- à¤®à¤¾à¤¸à¤¿à¤•/à¤µà¤¾à¤°à¥à¤·à¤¿à¤• à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿà¥à¤¸
+- à¤‡à¤¨à¥à¤µà¥‡à¤‚à¤Ÿà¤°à¥€ à¤‰à¤ªà¤¯à¥‹à¤— à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£
+- à¤­à¤µà¤¿à¤·à¥à¤¯ à¤•à¥€ à¤¬à¥à¤•à¤¿à¤‚à¤— à¤•à¥à¤·à¤®à¤¤à¤¾ à¤•à¥ˆà¤²à¤•à¥à¤²à¥‡à¤Ÿà¤°
+- à¤—à¥à¤°à¤¾à¤¹à¤• à¤”à¤° à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¤¾ à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£
+
+## Documentation (Development Plan)
+
+à¤ªà¥‚à¤°à¤¾ development plan `docs/` à¤®à¥‡à¤‚ à¤¹à¥ˆ:
+
+| Doc | à¤•à¥à¤¯à¤¾ à¤¹à¥ˆ |
+|---|---|
+| [`docs/DEVELOPMENT_PLAN.md`](./docs/DEVELOPMENT_PLAN.md) | Master plan â€” audit, defects, 10 phases, effort estimate, MoSCoW, risks |
+| [`docs/ARCHITECTURE.md`](./docs/ARCHITECTURE.md) | Folder structure, data-flow patterns, auth/RLS, conventions |
+| [`docs/DATABASE.md`](./docs/DATABASE.md) | Schema inventory, migration 0004, new tables, RPCs, availability algorithm, indexes |
+| [`docs/MODULES.md`](./docs/MODULES.md) | Module-wise spec (M0â€“M9): routes, screens, actions, business rules, AC |
+| [`docs/QUALITY.md`](./docs/QUALITY.md) | Testing pyramid, CI, security checklist, performance, release process |
 
 ## Project Structure
 
 ```
 events-management-system/
-├── src/
-│   ├── app/                    # Next.js App Router
-│   │   ├── page.tsx            # Dashboard
-│   │   ├── layout.tsx          # Root Layout
-│   │   ├── contacts/           # Contact Management
-│   │   ├── inventory/          # Inventory Management
-│   │   ├── pricing/            # Rental Pricing
-│   │   ├── events/             # Event Management
-│   │   ├── reports/            # Reports & Analytics
-│   │   ├── auth/login/         # Authentication
-│   │   └── globals.css         # Global Styles
-│   ├── components/
-│   │   ├── ui/                 # Reusable UI Components
-│   │   ├── layout/             # Layout Components (Navbar)
-│   │   ├── dashboard/          # Dashboard Components
-│   │   ├── contacts/           # Contact Components
-│   │   ├── inventory/          # Inventory Components
-│   │   ├── events/             # Event Components
-│   │   ├── pricing/            # Pricing Components
-│   │   └── reports/            # Report Components
-│   ├── lib/
-│   │   ├── supabase.ts         # Supabase Client
-│   │   └── utils.ts            # Utility Functions
-│   └── types/
-│       ├── index.ts            # TypeScript Types
-│       └── supabase.ts         # Supabase Database Types
-├── supabase/
-│   └── schema.sql              # Database Schema
-├── package.json
-├── tailwind.config.js
-├── next.config.js
-└── README.md
+â”œâ”€â”€ src/
+â”‚   â”œâ”€â”€ app/                    # Next.js App Router
+â”‚   â”‚   â”œâ”€â”€ page.tsx            # Dashboard
+â”‚   â”‚   â”œâ”€â”€ layout.tsx          # Root Layout
+â”‚   â”‚   â”œâ”€â”€ contacts/           # Contact Management
+â”‚   â”‚   â”œâ”€â”€ inventory/          # Inventory Management
+â”‚   â”‚   â”œâ”€â”€ pricing/            # Rental Pricing
+â”‚   â”‚   â”œâ”€â”€ events/             # Event Management
+â”‚   â”‚   â”œâ”€â”€ reports/            # Reports & Analytics
+â”‚   â”‚   â”œâ”€â”€ auth/login/         # Authentication
+â”‚   â”‚   â””â”€â”€ globals.css         # Global Styles
+â”‚   â”œâ”€â”€ components/
+â”‚   â”‚   â”œâ”€â”€ ui/                 # Reusable UI Components
+â”‚   â”‚   â”œâ”€â”€ layout/             # Layout Components (Navbar)
+â”‚   â”‚   â”œâ”€â”€ dashboard/          # Dashboard Components
+â”‚   â”‚   â”œâ”€â”€ contacts/           # Contact Components
+â”‚   â”‚   â”œâ”€â”€ inventory/          # Inventory Components
+â”‚   â”‚   â”œâ”€â”€ events/             # Event Components
+â”‚   â”‚   â”œâ”€â”€ pricing/            # Pricing Components
+â”‚   â”‚   â””â”€â”€ reports/            # Report Components
+â”‚   â”œâ”€â”€ lib/
+â”‚   â”‚   â”œâ”€â”€ supabase.ts         # Supabase Client
+â”‚   â”‚   â””â”€â”€ utils.ts            # Utility Functions
+â”‚   â””â”€â”€ types/
+â”‚       â”œâ”€â”€ index.ts            # TypeScript Types
+â”‚       â””â”€â”€ supabase.ts         # Supabase Database Types
+â”œâ”€â”€ supabase/
+â”‚   â””â”€â”€ schema.sql              # Database Schema
+â”œâ”€â”€ package.json
+â”œâ”€â”€ tailwind.config.js
+â”œâ”€â”€ next.config.js
+â””â”€â”€ README.md
 ```
 
 ## Setup Instructions
 
 ### 1. Supabase Setup
 
-1. **Supabase Account बनाएं**: [supabase.com](https://supabase.com) पर जाएं
-2. **New Project बनाएं**: एक नया प्रोजेक्ट बनाएं
-3. **Database Schema इम्पोर्ट करें**:
-   - Supabase Dashboard में SQL Editor खोलें
-   - `supabase/schema.sql` फाइल की सामग्री कॉपी करें
-   - SQL Editor में पेस्ट करें और Run करें
+1. **Supabase Account à¤¬à¤¨à¤¾à¤à¤‚**: [supabase.com](https://supabase.com) à¤ªà¤° à¤œà¤¾à¤à¤‚
+2. **New Project à¤¬à¤¨à¤¾à¤à¤‚**: à¤à¤• à¤¨à¤¯à¤¾ à¤ªà¥à¤°à¥‹à¤œà¥‡à¤•à¥à¤Ÿ à¤¬à¤¨à¤¾à¤à¤‚
+3. **Database Schema à¤‡à¤®à¥à¤ªà¥‹à¤°à¥à¤Ÿ à¤•à¤°à¥‡à¤‚**:
+   - Supabase Dashboard à¤®à¥‡à¤‚ SQL Editor à¤–à¥‹à¤²à¥‡à¤‚
+   - `supabase/schema.sql` à¤«à¤¾à¤‡à¤² à¤•à¥€ à¤¸à¤¾à¤®à¤—à¥à¤°à¥€ à¤•à¥‰à¤ªà¥€ à¤•à¤°à¥‡à¤‚
+   - SQL Editor à¤®à¥‡à¤‚ à¤ªà¥‡à¤¸à¥à¤Ÿ à¤•à¤°à¥‡à¤‚ à¤”à¤° Run à¤•à¤°à¥‡à¤‚
 
-4. **API Keys प्राप्त करें**:
-   - Settings → API में जाएं
-   - `Project URL` और `anon public` key कॉपी करें
+4. **API Keys à¤ªà¥à¤°à¤¾à¤ªà¥à¤¤ à¤•à¤°à¥‡à¤‚**:
+   - Settings â†’ API à¤®à¥‡à¤‚ à¤œà¤¾à¤à¤‚
+   - `Project URL` à¤”à¤° `anon public` key à¤•à¥‰à¤ªà¥€ à¤•à¤°à¥‡à¤‚
 
 ### 2. Local Development Setup
 
 ```bash
-# Dependencies इंस्टॉल करें
+# Dependencies à¤‡à¤‚à¤¸à¥à¤Ÿà¥‰à¤² à¤•à¤°à¥‡à¤‚
 npm install
 
-# Environment Variables सेट करें
-# .env.local.example को .env.local में कॉपी करें
-# अपनी Supabase credentials भरें
+# Environment Variables à¤¸à¥‡à¤Ÿ à¤•à¤°à¥‡à¤‚
+# .env.example à¤•à¥‹ .env.local à¤®à¥‡à¤‚ à¤•à¥‰à¤ªà¥€ à¤•à¤°à¥‡à¤‚
+# à¤…à¤ªà¤¨à¥€ Supabase credentials à¤­à¤°à¥‡à¤‚
 
-# Development Server चलाएं
+# Development Server à¤šà¤²à¤¾à¤à¤‚
 npm run dev
 ```
 
-### 3. Vercel पर Deploy करें
+### 3. Vercel à¤ªà¤° Deploy à¤•à¤°à¥‡à¤‚
 
 ```bash
-# Vercel CLI इंस्टॉल करें (अगर नहीं है)
+# Vercel CLI à¤‡à¤‚à¤¸à¥à¤Ÿà¥‰à¤² à¤•à¤°à¥‡à¤‚ (à¤…à¤—à¤° à¤¨à¤¹à¥€à¤‚ à¤¹à¥ˆ)
 npm i -g vercel
 
-# Deploy करें
+# Deploy à¤•à¤°à¥‡à¤‚
 vercel
 ```
 
 ### Environment Variables (Vercel)
 
-Vercel Dashboard में जाकर Settings → Environment Variables में ये जोड़ें:
+Vercel Dashboard à¤®à¥‡à¤‚ à¤œà¤¾à¤•à¤° Settings â†’ Environment Variables à¤®à¥‡à¤‚ à¤¯à¥‡ à¤œà¥‹à¤¡à¤¼à¥‡à¤‚:
 
 ```
 NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
@@ -130,62 +142,103 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 ### Tables:
 
-1. **contacts** - सभी संपर्क (विक्रेता, किरायेदार, ग्राहक, कर्मचारी)
-2. **inventory_items** - सामान इन्वेंटरी
-3. **pricing_rates** - किराया मूल्य निर्धारण
-4. **events** - ईवेंट बुकिंग्स
-5. **event_items** - ईवेंट में उपयोग किया गया सामान
-6. **external_rentals** - बाहर से किराए पर लिया सामान
-7. **worker_assignments** - ईवेंट में कर्मचारी नियुक्ति
-8. **payments** - सभी वित्तीय लेनदेन
+1. **contacts** - à¤¸à¤­à¥€ à¤¸à¤‚à¤ªà¤°à¥à¤• (à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¤¾, à¤•à¤¿à¤°à¤¾à¤¯à¥‡à¤¦à¤¾à¤°, à¤—à¥à¤°à¤¾à¤¹à¤•, à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€)
+2. **inventory_items** - à¤¸à¤¾à¤®à¤¾à¤¨ à¤‡à¤¨à¥à¤µà¥‡à¤‚à¤Ÿà¤°à¥€
+3. **pricing_rates** - à¤•à¤¿à¤°à¤¾à¤¯à¤¾ à¤®à¥‚à¤²à¥à¤¯ à¤¨à¤¿à¤°à¥à¤§à¤¾à¤°à¤£
+4. **events** - à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¬à¥à¤•à¤¿à¤‚à¤—à¥à¤¸
+5. **event_items** - à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤®à¥‡à¤‚ à¤‰à¤ªà¤¯à¥‹à¤— à¤•à¤¿à¤¯à¤¾ à¤—à¤¯à¤¾ à¤¸à¤¾à¤®à¤¾à¤¨
+6. **external_rentals** - à¤¬à¤¾à¤¹à¤° à¤¸à¥‡ à¤•à¤¿à¤°à¤¾à¤ à¤ªà¤° à¤²à¤¿à¤¯à¤¾ à¤¸à¤¾à¤®à¤¾à¤¨
+7. **worker_assignments** - à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤®à¥‡à¤‚ à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€ à¤¨à¤¿à¤¯à¥à¤•à¥à¤¤à¤¿
+8. **payments** - à¤¸à¤­à¥€ à¤µà¤¿à¤¤à¥à¤¤à¥€à¤¯ à¤²à¥‡à¤¨à¤¦à¥‡à¤¨
 
 ## Usage Guide
 
-### नया संपर्क जोड़ें
-1. "संपर्क" मेनू पर जाएं
-2. "नया संपर्क" बटन पर क्लिक करें
-3. प्रकार चुनें (विक्रेता/किरायेदार/ग्राहक/कर्मचारी)
-4. विवरण भरें और Save करें
+### à¤¨à¤¯à¤¾ à¤¸à¤‚à¤ªà¤°à¥à¤• à¤œà¥‹à¤¡à¤¼à¥‡à¤‚
+1. "à¤¸à¤‚à¤ªà¤°à¥à¤•" à¤®à¥‡à¤¨à¥‚ à¤ªà¤° à¤œà¤¾à¤à¤‚
+2. "à¤¨à¤¯à¤¾ à¤¸à¤‚à¤ªà¤°à¥à¤•" à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
+3. à¤ªà¥à¤°à¤•à¤¾à¤° à¤šà¥à¤¨à¥‡à¤‚ (à¤µà¤¿à¤•à¥à¤°à¥‡à¤¤à¤¾/à¤•à¤¿à¤°à¤¾à¤¯à¥‡à¤¦à¤¾à¤°/à¤—à¥à¤°à¤¾à¤¹à¤•/à¤•à¤°à¥à¤®à¤šà¤¾à¤°à¥€)
+4. à¤µà¤¿à¤µà¤°à¤£ à¤­à¤°à¥‡à¤‚ à¤”à¤° Save à¤•à¤°à¥‡à¤‚
 
-### सामान जोड़ें
-1. "इन्वेंटरी" मेनू पर जाएं
-2. "नया सामान" बटन पर क्लिक करें
-3. नाम, कैटेगरी, मात्रा भरें
-4. यूनिक कोड ऑटो-जनरेट होगा
-5. Save करें
+### à¤¸à¤¾à¤®à¤¾à¤¨ à¤œà¥‹à¤¡à¤¼à¥‡à¤‚
+1. "à¤‡à¤¨à¥à¤µà¥‡à¤‚à¤Ÿà¤°à¥€" à¤®à¥‡à¤¨à¥‚ à¤ªà¤° à¤œà¤¾à¤à¤‚
+2. "à¤¨à¤¯à¤¾ à¤¸à¤¾à¤®à¤¾à¤¨" à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
+3. à¤¨à¤¾à¤®, à¤•à¥ˆà¤Ÿà¥‡à¤—à¤°à¥€, à¤®à¤¾à¤¤à¥à¤°à¤¾ à¤­à¤°à¥‡à¤‚
+4. à¤¯à¥‚à¤¨à¤¿à¤• à¤•à¥‹à¤¡ à¤‘à¤Ÿà¥‹-à¤œà¤¨à¤°à¥‡à¤Ÿ à¤¹à¥‹à¤—à¤¾
+5. Save à¤•à¤°à¥‡à¤‚
 
-### ईवेंट बनाएं
-1. "ईवेंट्स" मेनू पर जाएं
-2. "नया ईवेंट" बटन पर क्लिक करें
-3. ग्राहक चुनें या नया ग्राहक जोड़ें
-4. तारीख और स्थान भरें
-5. आवश्यक सामान जोड़ें
-6. किराया स्वचालित रूप से गणना होगा
+### à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¬à¤¨à¤¾à¤à¤‚
+1. "à¤ˆà¤µà¥‡à¤‚à¤Ÿà¥à¤¸" à¤®à¥‡à¤¨à¥‚ à¤ªà¤° à¤œà¤¾à¤à¤‚
+2. "à¤¨à¤¯à¤¾ à¤ˆà¤µà¥‡à¤‚à¤Ÿ" à¤¬à¤Ÿà¤¨ à¤ªà¤° à¤•à¥à¤²à¤¿à¤• à¤•à¤°à¥‡à¤‚
+3. à¤—à¥à¤°à¤¾à¤¹à¤• à¤šà¥à¤¨à¥‡à¤‚ à¤¯à¤¾ à¤¨à¤¯à¤¾ à¤—à¥à¤°à¤¾à¤¹à¤• à¤œà¥‹à¤¡à¤¼à¥‡à¤‚
+4. à¤¤à¤¾à¤°à¥€à¤– à¤”à¤° à¤¸à¥à¤¥à¤¾à¤¨ à¤­à¤°à¥‡à¤‚
+5. à¤†à¤µà¤¶à¥à¤¯à¤• à¤¸à¤¾à¤®à¤¾à¤¨ à¤œà¥‹à¤¡à¤¼à¥‡à¤‚
+6. à¤•à¤¿à¤°à¤¾à¤¯à¤¾ à¤¸à¥à¤µà¤šà¤¾à¤²à¤¿à¤¤ à¤°à¥‚à¤ª à¤¸à¥‡ à¤—à¤£à¤¨à¤¾ à¤¹à¥‹à¤—à¤¾
 
-### रिपोर्ट्स देखें
-1. "रिपोर्ट्स" मेनू पर जाएं
-2. लाभ/हानि रिपोर्ट देखें
-3. इन्वेंटरी उपयोग विश्लेषण
-4. भविष्य की बुकिंग क्षमता
+### à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿà¥à¤¸ à¤¦à¥‡à¤–à¥‡à¤‚
+1. "à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿà¥à¤¸" à¤®à¥‡à¤¨à¥‚ à¤ªà¤° à¤œà¤¾à¤à¤‚
+2. à¤²à¤¾à¤­/à¤¹à¤¾à¤¨à¤¿ à¤°à¤¿à¤ªà¥‹à¤°à¥à¤Ÿ à¤¦à¥‡à¤–à¥‡à¤‚
+3. à¤‡à¤¨à¥à¤µà¥‡à¤‚à¤Ÿà¤°à¥€ à¤‰à¤ªà¤¯à¥‹à¤— à¤µà¤¿à¤¶à¥à¤²à¥‡à¤·à¤£
+4. à¤­à¤µà¤¿à¤·à¥à¤¯ à¤•à¥€ à¤¬à¥à¤•à¤¿à¤‚à¤— à¤•à¥à¤·à¤®à¤¤à¤¾
 
+## User Management (RBAC)
+
+Access is role based and enforced in four independent layers: navigation, the
+`/users` page, the server actions, and Postgres RLS plus a guard trigger.
+
+| Role         | Can create / manage        |
+| ------------ | -------------------------- |
+| `super_admin`| admin, accountant, staff   |
+| `admin`      | accountant, staff          |
+| `accountant` | -                          |
+| `staff`      | -                          |
+
+The hierarchy lives in one place, `public.can_assign_role()`, and both the guard
+trigger and the server actions use it, so nobody can hand out a peer or a
+senior role. A user cannot change their own `role`, `user_id` or `is_active`.
+
+There is no public signup. The first super admin is created by running
+`supabase/seed/bootstrap-super-admin.sql` once in the Supabase SQL Editor, after
+`supabase/schema.sql`.
+
+- Copy `supabase/seed/bootstrap-super-admin.example.sql` to
+  `supabase/seed/bootstrap-super-admin.sql` and fill in the CONFIG block.
+- That file is gitignored, because it holds a real password.
+
+## Schema and Type Safety
+
+`src/types/supabase.ts` is generated from `supabase/schema.sql`, never hand
+edited. The domain types in `src/types/index.ts` are derived from it, and the
+browser Supabase client is created with the `Database` generic, so every query
+is checked against the real schema at build time.
+
+```
+npm run db:check              # schema assertions + column audit + types in sync
+npm run supabase:gen:offline  # regenerate types from schema.sql
+npm run type-check            # tsc
+npm run check                 # all of the above
+```
+
+`assert-schema.js` pins the CHECK constraint values and the exact column names
+(`min_rental_days`, not `min_days`; `customer_id`, not `client_id`), so a
+schema edit that the app has not caught up with fails the build.
 ## Additional Features Recommended
 
-मैंने आपके लिए ये अतिरिक्त सुविधाएं सुझाई हैं:
+à¤®à¥ˆà¤‚à¤¨à¥‡ à¤†à¤ªà¤•à¥‡ à¤²à¤¿à¤ à¤¯à¥‡ à¤…à¤¤à¤¿à¤°à¤¿à¤•à¥à¤¤ à¤¸à¥à¤µà¤¿à¤§à¤¾à¤à¤‚ à¤¸à¥à¤à¤¾à¤ˆ à¤¹à¥ˆà¤‚:
 
-1. **Multi-user Support** - अलग-अलग रोल्स (Admin, Manager, Staff)
-2. **SMS Notifications** - ईवेंट रिमाइंडर्स और कन्फर्मेशन
-3. **Document Management** - करार पत्र, इनवॉइस, रसीदें
+1. ~~**Multi-user Support**~~ - DONE. Role-based access is live: super_admin / admin / accountant / staff. See "User management" below.
+2. **SMS Notifications** - à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤°à¤¿à¤®à¤¾à¤‡à¤‚à¤¡à¤°à¥à¤¸ à¤”à¤° à¤•à¤¨à¥à¤«à¤°à¥à¤®à¥‡à¤¶à¤¨
+3. **Document Management** - à¤•à¤°à¤¾à¤° à¤ªà¤¤à¥à¤°, à¤‡à¤¨à¤µà¥‰à¤‡à¤¸, à¤°à¤¸à¥€à¤¦à¥‡à¤‚
 4. **Calendar Integration** - Google Calendar sync
-5. **Photo Gallery** - ईवेंट या सामान की फोटोज
-6. **Maintenance Scheduler** - सामान की मरम्मत शेड्यूलिंग
-7. **Barcode/QR Scanner** - Inventory management के लिए
-8. **Multi-location** - अलग-अलग गोदाम/स्टोर लोकेशन
-9. **Customer Portal** - ग्राहक अपने ईवेंट देख सकें
-10. **Expense Categories** - विस्तृत खर्च की कैटेगरीज
+5. **Photo Gallery** - à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¯à¤¾ à¤¸à¤¾à¤®à¤¾à¤¨ à¤•à¥€ à¤«à¥‹à¤Ÿà¥‹à¤œ
+6. **Maintenance Scheduler** - à¤¸à¤¾à¤®à¤¾à¤¨ à¤•à¥€ à¤®à¤°à¤®à¥à¤®à¤¤ à¤¶à¥‡à¤¡à¥à¤¯à¥‚à¤²à¤¿à¤‚à¤—
+7. **Barcode/QR Scanner** - Inventory management à¤•à¥‡ à¤²à¤¿à¤
+8. **Multi-location** - à¤…à¤²à¤—-à¤…à¤²à¤— à¤—à¥‹à¤¦à¤¾à¤®/à¤¸à¥à¤Ÿà¥‹à¤° à¤²à¥‹à¤•à¥‡à¤¶à¤¨
+9. **Customer Portal** - à¤—à¥à¤°à¤¾à¤¹à¤• à¤…à¤ªà¤¨à¥‡ à¤ˆà¤µà¥‡à¤‚à¤Ÿ à¤¦à¥‡à¤– à¤¸à¤•à¥‡à¤‚
+10. **Expense Categories** - à¤µà¤¿à¤¸à¥à¤¤à¥ƒà¤¤ à¤–à¤°à¥à¤š à¤•à¥€ à¤•à¥ˆà¤Ÿà¥‡à¤—à¤°à¥€à¤œ
 
 ## Technology Stack
 
-- **Frontend**: Next.js 14 (App Router), React 18, TypeScript
+- **Frontend**: Next.js 16 (App Router), React 19, TypeScript 6, Tailwind CSS 4
 - **Styling**: Tailwind CSS, shadcn/ui components
 - **Backend**: Supabase (PostgreSQL + Auth)
 - **Icons**: Lucide React
@@ -194,8 +247,8 @@ SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
 
 ## Support
 
-किसी भी समस्या या सवाल के लिए, कृपया issue बनाएं या संपर्क करें।
+à¤•à¤¿à¤¸à¥€ à¤­à¥€ à¤¸à¤®à¤¸à¥à¤¯à¤¾ à¤¯à¤¾ à¤¸à¤µà¤¾à¤² à¤•à¥‡ à¤²à¤¿à¤, à¤•à¥ƒà¤ªà¤¯à¤¾ issue à¤¬à¤¨à¤¾à¤à¤‚ à¤¯à¤¾ à¤¸à¤‚à¤ªà¤°à¥à¤• à¤•à¤°à¥‡à¤‚à¥¤
 
 ---
 
-**Built with ❤️ for Event Management Businesses**
+**Built with â¤ï¸ for Event Management Businesses**

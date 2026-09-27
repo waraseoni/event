@@ -77,7 +77,7 @@ export function RecentEvents() {
                 </div>
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium">
-                    {formatCurrency(event.total_amount, language)}
+                    {formatCurrency(event.total_amount ?? 0, language)}
                   </span>
                   <span
                     className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${getStatusColor(

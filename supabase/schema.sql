@@ -1234,7 +1234,90 @@ DO $$ BEGIN
     EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.system_settings', policyname), '; ')
       FROM pg_policies WHERE schemaname = 'public' AND tablename = 'system_settings'), 'SELECT 1');
     CREATE POLICY "Super admin+ admin read settings" ON system_settings FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin'));
+    CREATE POLICY "Super admin+ admin insert settings" ON system_settings FOR INSERT WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
     CREATE POLICY "Super admin+ admin update settings" ON system_settings FOR UPDATE USING (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+-- =============================================================================
+-- DEFECT D1 — tables that shipped without RLS
+-- =============================================================================
+-- payments, invoice_items, external_rentals, worker_assignments, item_serials,
+-- maintenance_records and special_rates were created without ENABLE ROW LEVEL
+-- SECURITY and without policies. On a table with RLS off, Postgres ignores
+-- policies entirely, so the public anon key could read AND write every row —
+-- including the payments table. Each block below locks the table down and
+-- grants the same roles its parent table already had, so no existing app
+-- behaviour changes.
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'payments') THEN
+    ALTER TABLE payments ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.payments', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'payments'), 'SELECT 1');
+    -- Money is deliberately stricter than the rest: no staff read access.
+    CREATE POLICY "Accountant+ read payments" ON payments FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant'));
+    CREATE POLICY "Accountant+ manage payments" ON payments FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin', 'accountant'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'invoice_items') THEN
+    ALTER TABLE invoice_items ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.invoice_items', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'invoice_items'), 'SELECT 1');
+    CREATE POLICY "Staff+ read invoice items" ON invoice_items FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage invoice items" ON invoice_items FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'external_rentals') THEN
+    ALTER TABLE external_rentals ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.external_rentals', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'external_rentals'), 'SELECT 1');
+    CREATE POLICY "Staff+ read external rentals" ON external_rentals FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage external rentals" ON external_rentals FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'worker_assignments') THEN
+    ALTER TABLE worker_assignments ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.worker_assignments', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'worker_assignments'), 'SELECT 1');
+    CREATE POLICY "Staff+ read worker assignments" ON worker_assignments FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage worker assignments" ON worker_assignments FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'item_serials') THEN
+    ALTER TABLE item_serials ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.item_serials', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'item_serials'), 'SELECT 1');
+    CREATE POLICY "Staff+ read item serials" ON item_serials FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage item serials" ON item_serials FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'maintenance_records') THEN
+    ALTER TABLE maintenance_records ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.maintenance_records', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'maintenance_records'), 'SELECT 1');
+    CREATE POLICY "Staff+ read maintenance" ON maintenance_records FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage maintenance" ON maintenance_records FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
+  END IF;
+END $$;
+
+DO $$ BEGIN
+  IF EXISTS (SELECT 1 FROM information_schema.tables WHERE table_schema = 'public' AND table_name = 'special_rates') THEN
+    ALTER TABLE special_rates ENABLE ROW LEVEL SECURITY;
+    EXECUTE COALESCE((SELECT string_agg(format('DROP POLICY IF EXISTS %I ON public.special_rates', policyname), '; ')
+      FROM pg_policies WHERE schemaname = 'public' AND tablename = 'special_rates'), 'SELECT 1');
+    CREATE POLICY "Staff+ read special rates" ON special_rates FOR SELECT USING (public.current_user_role() IN ('super_admin', 'admin', 'accountant', 'staff'));
+    CREATE POLICY "Super admin+ manage special rates" ON special_rates FOR ALL USING (public.current_user_role() IN ('super_admin', 'admin')) WITH CHECK (public.current_user_role() IN ('super_admin', 'admin'));
   END IF;
 END $$;
 

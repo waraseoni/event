@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
-import { Contact } from '@/types'
+import { Contact, ContactFilter } from '@/types'
 import { getContactTypeLabel, getInitials } from '@/lib/utils'
 import { useLanguage } from '@/contexts/language-context'
 import { supabase } from '@/lib/supabase'
@@ -10,7 +10,9 @@ import { Phone, Mail, Building2, MapPin, Trash2 } from 'lucide-react'
 import { EditContactButton } from './edit-contact-button'
 
 interface ContactsListProps {
-  filter?: { type?: string; search?: string }
+  // ContactType, not string: contacts.type is a CHECK-constrained column, so a
+  // loose string here would let callers filter on a value the DB rejects.
+  filter?: ContactFilter
 }
 
 export function ContactsList({ filter }: ContactsListProps) {
