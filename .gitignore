@@ -69,6 +69,18 @@ next-env.d.ts
 *.tmp
 .eslintcache
 
+# 10. Supabase seed scripts containing real credentials
+# bootstrap-super-admin.sql me aapka asli password aata hai, aur wahi file
+# SQL Editor me chalani hai - isliye use version control se bahar rakha gaya hai.
+# Us procedure ka safe copy yahan maujood hai:
+#   supabase/seed/bootstrap-super-admin.example.sql
+# Naya file banane ke liye example ko copy kar lo:
+#   cp supabase/seed/bootstrap-super-admin.example.sql \
+#      supabase/seed/bootstrap-super-admin.sql
+# aur CONFIG block me apni details bhar lo.
+supabase/seed/bootstrap-super-admin.sql
+supabase/seed/*.local.sql
+
 #php-ref/
 
 db folder/
