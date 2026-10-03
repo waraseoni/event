@@ -13,12 +13,12 @@ const buttonVariants = cva(
         destructive:
           'bg-gradient-to-r from-rose-500 to-pink-600 text-white hover:from-rose-600 hover:to-pink-700 shadow-rose-500/30',
         outline:
-          'border-2 border-white/30 bg-white/10 backdrop-blur-sm text-white hover:bg-white/20 hover:border-white/50',
+          'border border-slate-300 bg-white text-slate-900 hover:bg-slate-100 hover:text-slate-900 dark:border-white/30 dark:bg-white/10 dark:text-white dark:hover:bg-white/20 dark:hover:text-white',
         secondary:
           'bg-gradient-to-r from-cyan-500 to-blue-600 text-white hover:from-cyan-600 hover:to-blue-700 shadow-cyan-500/30',
         accent:
           'bg-gradient-to-r from-fuchsia-500 to-pink-600 text-white hover:from-fuchsia-600 hover:to-pink-700 shadow-fuchsia-500/30',
-        ghost: 'hover:bg-white/10 hover:text-white text-white/80',
+        ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900 dark:text-white/80 dark:hover:bg-white/10 dark:hover:text-white',
         link: 'text-indigo-300 underline-offset-4 hover:underline hover:text-indigo-200',
         gradient:
           'bg-gradient-to-r from-violet-500 via-fuchsia-500 to-pink-500 text-white hover:from-violet-600 hover:via-fuchsia-600 hover:to-pink-600 shadow-fuchsia-500/30',
@@ -27,7 +27,7 @@ const buttonVariants = cva(
         warning:
           'bg-gradient-to-r from-amber-500 to-orange-600 text-white hover:from-amber-600 hover:to-orange-700 shadow-amber-500/30',
         glass:
-          'bg-white/20 backdrop-blur-xl border border-white/30 text-white hover:bg-white/30 shadow-lg',
+          'border border-slate-300/60 bg-white/70 backdrop-blur-xl text-slate-900 hover:bg-white dark:border-white/30 dark:bg-white/20 dark:text-white dark:hover:bg-white/30 shadow-lg',
       },
       size: {
         default: 'h-11 px-6 py-3',
