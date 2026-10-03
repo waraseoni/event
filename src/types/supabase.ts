@@ -797,6 +797,10 @@ export type Database = {
           reorder_level: number | null
           location_id: string | null
           owned_quantity: number | null
+          maintenance_interval_days: number | null
+          last_maintenance_date: string | null
+          next_maintenance_date: string | null
+          max_parallel_events: number | null
         }
         Insert: {
           name: string
@@ -829,6 +833,10 @@ export type Database = {
           reorder_level?: number | null
           location_id?: string | null
           owned_quantity?: number | null
+          maintenance_interval_days?: number | null
+          last_maintenance_date?: string | null
+          next_maintenance_date?: string | null
+          max_parallel_events?: number | null
         }
         Update: {
           name?: string
@@ -861,6 +869,10 @@ export type Database = {
           reorder_level?: number | null
           location_id?: string | null
           owned_quantity?: number | null
+          maintenance_interval_days?: number | null
+          last_maintenance_date?: string | null
+          next_maintenance_date?: string | null
+          max_parallel_events?: number | null
         }
         Relationships: [
           {
@@ -2293,6 +2305,18 @@ export type Database = {
         }
         Returns: string
       }
+      fn_inventory_search: {
+        Args: {
+          _unknown: never
+        }
+        Returns: unknown
+      }
+      guard_inventory_quantity_change: {
+        Args: {
+          _unknown: never
+        }
+        Returns: unknown
+      }
       guard_profile_privileged_fields: {
         Args: {
           _unknown: never
@@ -2311,7 +2335,19 @@ export type Database = {
         }
         Returns: boolean
       }
+      p_adjust_stock: {
+        Args: {
+          _unknown: never
+        }
+        Returns: unknown
+      }
       role_rank: {
+        Args: {
+          _unknown: never
+        }
+        Returns: unknown
+      }
+      touch_updated_at: {
         Args: {
           _unknown: never
         }
